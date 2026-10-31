@@ -132,7 +132,7 @@ backoff. Discovery/fetch/processamento/reconciliação têm limites de 30 s (sof
 - Atualize permissões usando `Source.save()` ou o admin, que serializam as mudanças
   com ingestões e recalculam Properties; não use `QuerySet.update()` para essas operações.
 - Atualize preços via provider/normalização/`persist_listing`. No admin, o preço de
-  um anúncio existente e o histórico são somente leitura; um cadastro manual inicial
+  um anúncio existente, sua identidade (Fonte/ID externo) e o histórico são somente leitura; um cadastro manual inicial
   registra seu preço no histórico. A persistência valida os campos do Listing antes
   de gravar, dentro da mesma transação de histórico e agrupamento.
 - `SyncRun`, disponível em `/admin/ingestion/syncrun/`, registra estado, completude,
@@ -152,7 +152,10 @@ backoff. Discovery/fetch/processamento/reconciliação têm limites de 30 s (sof
 - `DEDUP_SCORE_WEIGHTS` aceita `compatible`, `coordinates`, `area` e `title`
   (padrões 0,3/0,3/0,2/0,2), com pesos finitos não negativos somando até 1.
   Nenhum peso substitui as evidências de identidade obrigatórias. Candidatos são
-  filtrados por localização, tipo, área e características conhecidas compatíveis.
+  filtrados por cidade/estado, tipo, área e características conhecidas compatíveis.
+  Bairro usa comparação canônica no score, preservando grafias com/sem acentos.
+  Ofertas ativas retiradas da publicação ainda restringem a identidade dos grupos
+  enquanto seus dados são retidos, evitando comparações incompatíveis na republicação.
 - `Source.is_demo` identifica demonstração na API e interface. O dataset conhecido
   é marcado pela migration e por `seed_demo`; misturas são identificadas no card,
   e cada oferta fictícia tem sua saída desabilitada.

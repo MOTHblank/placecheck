@@ -83,4 +83,3 @@ class PropertyDetailSerializer(PropertyListSerializer):
 
     class Meta(PropertyListSerializer.Meta):
         fields = PropertyListSerializer.Meta.fields + ("latitude", "longitude", "listings")
-

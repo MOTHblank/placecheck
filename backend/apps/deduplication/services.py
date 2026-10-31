@@ -32,11 +32,11 @@ class SimilarityResult:
 
 def select_candidates(listing):
     candidates = Listing.objects.filter(
-        is_active=True, source__is_published=True, city__iexact=listing.city, state__iexact=listing.state,
+        is_active=True, city__iexact=listing.city, state__iexact=listing.state,
         property_type=listing.property_type, property__isnull=False,
     ).exclude(pk=listing.pk).order_by("id")
-    if listing.neighborhood:
-        candidates = candidates.filter(Q(neighborhood__iexact=listing.neighborhood) | Q(neighborhood=""))
+    # Neighborhoods are compared canonically by the scorer (including accents).
+    # Publication controls visibility; retained active peers still constrain identity.
     for field in ("bedrooms", "bathrooms", "parking_spaces", "suites"):
         value = getattr(listing, field)
         if value is not None:
@@ -128,7 +128,7 @@ def match_listing_to_property(listing):
     best, result = ranked[0] if ranked else (None, SimilarityResult(0, ("no-candidate",)))
     # Every active member must agree: a bridge cannot join incompatible units.
     automatic_groups = {}
-    for member in Listing.objects.filter(is_active=True, source__is_published=True, property_id__in=group_ids).exclude(pk=listing.pk):
+    for member in Listing.objects.filter(is_active=True, property_id__in=group_ids).exclude(pk=listing.pk):
         automatic_groups.setdefault(member.property_id, []).append(calculate_similarity(listing, member).automatic)
     valid_groups = {key for key, values in automatic_groups.items() if all(values)}
     matches = [(candidate, similarity) for candidate, similarity in ranked if similarity.automatic and candidate.property_id in valid_groups]
@@ -137,7 +137,7 @@ def match_listing_to_property(listing):
         assigned = best.property
         outcome = "automatic"
     else:
-        peers = Listing.objects.filter(property_id=previous_id, is_active=True, source__is_published=True).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
+        peers = Listing.objects.filter(property_id=previous_id, is_active=True).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
         assigned = listing.property if previous_id and not peers.exists() else _property_from_listing(listing)
         outcome = "possible" if result.score >= 0.5 else "separate"
     Listing.objects.filter(pk=listing.pk).update(property=assigned)

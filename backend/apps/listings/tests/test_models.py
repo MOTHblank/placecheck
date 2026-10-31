@@ -34,6 +34,8 @@ def test_admin_prevents_price_and_history_edits(admin_client):
     listing = ListingFactory.create(price="650000.00")
     response = admin_client.get(f"/admin/listings/listing/{listing.pk}/change/")
     assert "price" not in response.context["adminform"].form.fields
+    assert "source" not in response.context["adminform"].form.fields
+    assert "external_id" not in response.context["adminform"].form.fields
     assert "price" in response.context["adminform"].readonly_fields
     response = admin_client.get("/admin/listings/listingpricehistory/add/")
     assert response.status_code == 403

@@ -13,7 +13,7 @@ class ListingAdmin(admin.ModelAdmin):
     autocomplete_fields = ("source", "property")
 
     def get_readonly_fields(self, request, obj=None):
-        return ("price",) if obj else ()
+        return ("price", "source", "external_id") if obj else ()
 
     @transaction.atomic
     def save_model(self, request, obj, form, change):

@@ -127,5 +127,34 @@ def test_candidates_exclude_known_conflicts_and_keep_missing_characteristics():
     missing = ListingFactory.create(area=None, bedrooms=None)
     ListingFactory.create(area="160", bedrooms=2)
     ListingFactory.create(area="80", bedrooms=4)
-    ListingFactory.create(area="80", bedrooms=2, neighborhood="Moema")
     assert set(select_candidates(first).values_list("pk", flat=True)) == {compatible.pk, missing.pk}
+
+
+@pytest.mark.django_db
+def test_accent_equivalent_neighborhoods_can_share_property():
+    first = ListingFactory.create(property=None, neighborhood="Graça", latitude="-23.561000", longitude="-46.690000", title="Apartamento unidade 401 em Salvador")
+    second = ListingFactory.create(property=None, source=SourceFactory.create(), neighborhood="Graca", latitude=first.latitude, longitude=first.longitude, title=first.title)
+    assert match_listing_to_property(first) == match_listing_to_property(second)
+
+
+@pytest.mark.django_db
+def test_correction_while_peer_is_withdrawn_preserves_separation_after_republication():
+    from rest_framework.test import APIClient
+
+    first = ListingFactory.create(property=None, latitude="-23.561000", longitude="-46.690000", title="Apartamento em Pinheiros unidade 401")
+    second = ListingFactory.create(property=None, source=SourceFactory.create(), latitude=first.latitude, longitude=first.longitude, title=first.title)
+    shared = match_listing_to_property(first)
+    assert match_listing_to_property(second) == shared
+    second.source.is_published = False
+    second.source.save()
+    first.title = "Apartamento em Pinheiros unidade 402"
+    first.save()
+    match_listing_to_property(first)
+    second.source.is_published = True
+    second.source.save()
+    first.refresh_from_db()
+    second.refresh_from_db()
+    assert first.property_id != second.property_id
+    response = APIClient().get(f"/api/properties/{first.property_id}/")
+    assert [offer["id"] for offer in response.data["listings"]] == [first.pk]
+    assert first.match_decisions.latest("id").previous_property_id == shared.pk

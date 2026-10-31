@@ -48,14 +48,16 @@ class Command(BaseCommand):
 
         try:
             write({"controlled-001": record})
-            baseline = source.sync_runs.count()
+            baseline = source.sync_runs.values_list("pk", flat=True).first() or 0
+            before = Listing.objects.filter(source=source, external_id="controlled-001").first()
+            expected_history_count = (before.price_history.count() if before else 0) + (0 if before and before.price == 650000 else 1)
             source.is_active = True
             source.save()
-            wait_for(lambda: source.sync_runs.filter(status="succeeded", processed_count=1).count() >= baseline + 2)
+            wait_for(lambda: source.sync_runs.filter(pk__gt=baseline, status="succeeded", processed_count=1).count() >= 2)
             listing = Listing.objects.get(source=source, external_id="controlled-001")
             initial_history_count = listing.price_history.count()
-            if initial_history_count == 0:
-                raise CommandError("Captura inicial não registrou histórico.")
+            if initial_history_count != expected_history_count:
+                raise CommandError("Repetição não preservou histórico idempotente.")
             self.stdout.write("Beat → Redis → worker: captura e repetição concluídas.")
             record["price"] = "R$ 640.000"
             write({"controlled-001": record})

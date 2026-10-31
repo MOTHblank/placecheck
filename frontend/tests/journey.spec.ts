@@ -79,3 +79,16 @@ test("loading, recoverable error, empty results and demo labels", async ({ page 
   await expect(page.getByText("Anúncio fictício para testes. Não há um site de origem real.").first()).toBeVisible();
   await expect(page.getByRole("dialog").getByRole("link", { name: /Ver anúncio original/ })).toHaveCount(0);
 });
+
+test("ordering stays usable without horizontal overflow at supported widths", async ({ page }, testInfo) => {
+  await page.goto("/?location=Test%C3%B3polis&transaction_type=sale");
+  await expect(page.getByText("14 imóveis encontrados", { exact: true })).toBeVisible();
+  for (const width of [320, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const ordering = page.getByLabel("Ordenar resultados");
+    await ordering.scrollIntoViewIfNeeded();
+    await expect(ordering).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    if (width === 320 || width === 1440) await page.screenshot({ path: testInfo.outputPath(`width-${width}.png`) });
+  }
+});
