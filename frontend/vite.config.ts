@@ -9,7 +9,6 @@ export default defineConfig({
   customLogger: logger,
   plugins: [react()],
   server: {
-    allowedHosts: ["louise-refurbished-warner-that.trycloudflare.com"],
     watch: { usePolling: true },
     proxy: {
       "/api": { target: "http://backend:8000", changeOrigin: false },

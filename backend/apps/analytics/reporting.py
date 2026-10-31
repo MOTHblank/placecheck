@@ -36,6 +36,14 @@ def parse_instant(value, zone):
     return candidates.pop()
 
 
+def report_market(city, state, transaction_type):
+    if any((city, state, transaction_type)) and not all((city, state, transaction_type)):
+        raise CommandError("Mercado exige cidade, UF e modalidade juntas.")
+    if state and (len(state) != 2 or transaction_type not in ("sale", "rent")):
+        raise CommandError("Mercado inválido.")
+    return {"city": city, "state": state.upper(), "transaction_type": transaction_type} if city else None
+
+
 def journey_report(*, start=None, end=None, timezone_name="America/Bahia", source=None,
                    city=None, state=None, transaction_type=None):
     zone = report_zone(timezone_name)
@@ -48,10 +56,7 @@ def journey_report(*, start=None, end=None, timezone_name="America/Bahia", sourc
         raise CommandError(f"Período anterior aos dados disponíveis: {available.isoformat()}.")
     if first >= last or first > now:
         raise CommandError("Período vazio, invertido ou inteiramente futuro.")
-    if any((city, state, transaction_type)) and not all((city, state, transaction_type)):
-        raise CommandError("Mercado exige cidade, UF e modalidade juntas.")
-    if state and (len(state) != 2 or transaction_type not in ("sale", "rent")):
-        raise CommandError("Mercado inválido.")
+    report_market(city, state, transaction_type)
     events = JourneyEvent.objects.filter(created_at__gte=first, created_at__lt=last, created_at__lte=now).filter(created_at__gt=now - RETENTION)
     redirects = RedirectEvent.objects.filter(created_at__gte=first, created_at__lt=last, created_at__lte=now).filter(created_at__gt=now - RETENTION)
     retained_events = JourneyEvent.objects.filter(created_at__gt=now - RETENTION, created_at__lte=now)

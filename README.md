@@ -96,7 +96,8 @@ Consulte [a auditoria do MVP](docs/mvp-audit.md) para a baseline anterior e as
 decisões pendentes. A integração com fontes reais
 depende do escopo permitido; o dataset padrão continua fictício e o piloto real
 fica isolado. A jornada e o CTR da Sprint 8 estão implementados no #12 conforme
-o [guia de analytics](docs/analytics.md); inventário/agrupamentos (#13) seguem pendentes.
+o [guia de analytics](docs/analytics.md). O [relatório de inventário](docs/inventory-report.md)
+do #13 apresenta estoque publicável, agrupamentos e sincronização por Fonte.
 
 O [contrato das métricas](docs/metrics-contract.md), aprovado em 2026-10-31 no #11,
 define contagem, CTR, atribuição, exclusões, retenção e testes para #12/#13.
@@ -106,11 +107,14 @@ elegível somente em seu banco separado.
 
 ```bash
 docker compose exec -T backend python manage.py journey_report
+docker compose exec -T backend python manage.py inventory_report
 docker compose exec -T backend python manage.py purge_analytics
 ```
 
 O relatório é restrito ao acesso autorizado ao ambiente, sem endpoint público.
 Consulte o guia para período, timezone, Fonte, mercado, exclusões e limitações.
+`inventory_report` mede o estado atual e aceita Fonte/mercado/timezone; não aceita
+período nem interpreta redução por agrupamento como acurácia.
 Validação do #12: 135 testes backend, build TypeScript/Vite, verificações Django e
 12 testes Playwright em desktop/celular passaram num Compose isolado.
 
@@ -253,7 +257,7 @@ http://localhost:15173/api/properties/. Use `down` com os mesmos argumentos para
 parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 
 Continuam pendentes as autorizações #7/#9, integrações reais #8/#10,
-relatório de inventário #13 e aceite real integrado #14. Não há alegação
+aceite real integrado #14. Não há alegação
 de MVP integralmente concluído nem alteração da spec pai #1.
 As duas revisões independentes e suas correções estão em
 [`docs/implementation-review.md`](docs/implementation-review.md).

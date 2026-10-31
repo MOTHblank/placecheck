@@ -1,7 +1,8 @@
 # Jornada e CTR — implementação do #12
 
-Segue o [contrato aprovado no #11](metrics-contract.md). Não implementa o relatório
-de estoque/agrupamento do #13 nem declara concluído o aceite real integrado #14.
+Segue o [contrato aprovado no #11](metrics-contract.md). Para estoque/agrupamento
+do #13, consulte [inventory-report.md](inventory-report.md). O aceite real integrado
+#14 continua pendente.
 
 ## Operação
 
