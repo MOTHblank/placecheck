@@ -1,11 +1,38 @@
 import pytest
 from decimal import Decimal
+from dataclasses import replace
+from unittest.mock import patch
 
 from apps.ingestion.services import ingest_provider
+from apps.ingestion.services import persist_listing
+from apps.sources.normalizers import normalize_listing
 from apps.listings.models import Listing, ListingPriceHistory
 from apps.sources.providers import ManualProvider
 from apps.sources.tests.factories import SourceFactory
 from apps.sources.tests.test_provider import sample_record
+
+
+@pytest.mark.django_db(transaction=True)
+def test_persistence_owns_its_transaction_outside_synchronous_ingestion():
+    source = SourceFactory.create()
+    normalized = normalize_listing(ManualProvider({}).parse(sample_record()))
+    first = persist_listing(source, normalized)
+    second = persist_listing(source, normalized)
+    assert first.pk == second.pk
+    assert first.price_history.count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_failed_matching_rolls_back_listing_and_price_history_together():
+    source = SourceFactory.create()
+    normalized = normalize_listing(ManualProvider({}).parse(sample_record()))
+    listing = persist_listing(source, normalized)
+    with patch("apps.ingestion.services.match_listing_to_property", side_effect=RuntimeError("matching failed")):
+        with pytest.raises(RuntimeError):
+            persist_listing(source, replace(normalized, price=Decimal("500000")))
+    listing.refresh_from_db()
+    assert listing.price == Decimal("650000")
+    assert listing.price_history.count() == 1
 
 
 @pytest.mark.django_db

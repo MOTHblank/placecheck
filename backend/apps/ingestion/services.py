@@ -5,9 +5,15 @@ from apps.deduplication.services import match_listing_to_property
 from apps.sources.normalizers import normalize_listing
 from apps.sources.providers import ListingProvider
 from apps.sources.schemas import NormalizedListing
+from apps.sources.models import Source
+from apps.properties.services import refresh_property
 
 
+@transaction.atomic
 def persist_listing(source, listing: NormalizedListing) -> Listing:
+    # Serialize first inserts as well as updates from the same source. An absent
+    # listing row cannot be locked; the source lock closes that race.
+    Source.objects.select_for_update().get(pk=source.pk)
     values = {
         "title": listing.title,
         "description": listing.description,
@@ -63,4 +69,8 @@ def reconcile_source_listings(source, seen_external_ids: list[str]) -> int:
     queryset = Listing.objects.filter(source=source, is_active=True)
     if seen_external_ids:
         queryset = queryset.exclude(external_id__in=seen_external_ids)
-    return queryset.update(is_active=False)
+    property_ids = list(queryset.exclude(property_id=None).values_list("property_id", flat=True).distinct())
+    count = queryset.update(is_active=False)
+    for property_id in sorted(set(property_ids)):
+        refresh_property(property_id)
+    return count
