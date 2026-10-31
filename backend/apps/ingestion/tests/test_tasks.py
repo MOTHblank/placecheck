@@ -8,6 +8,8 @@ from apps.listings.models import Listing
 from apps.sources.providers import ManualProvider
 from apps.sources.tests.factories import SourceFactory
 from apps.sources.tests.test_provider import sample_record
+from apps.ingestion.exceptions import SourceRateLimitExceeded
+from django.core.cache import cache
 
 
 @pytest.mark.django_db
@@ -40,3 +42,16 @@ def test_tasks_define_timeouts_and_retry_policy():
     assert fetch_listing.soft_time_limit == 30
     assert fetch_listing.time_limit == 45
     assert process_listing.max_retries == 3
+
+
+@pytest.mark.django_db
+@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+def test_fetch_enforces_source_specific_request_limit():
+    cache.clear()
+    source = SourceFactory.create(rate_limit_per_minute=2)
+    provider = ManualProvider({"manual-001": sample_record()})
+    with patch("apps.ingestion.tasks.build_provider", return_value=provider):
+        assert fetch_listing.run(source.pk, "manual-001") == sample_record()
+        assert fetch_listing.run(source.pk, "manual-001") == sample_record()
+        with pytest.raises(SourceRateLimitExceeded):
+            fetch_listing.run(source.pk, "manual-001")

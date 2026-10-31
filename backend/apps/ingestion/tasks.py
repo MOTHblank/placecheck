@@ -24,14 +24,14 @@ def _source_or_raise(source_id: int) -> Source:
 def _check_source_rate_limit(source: Source) -> None:
     key = f"placecheck:source-rate:{source.pk}"
     try:
-        if cache.add(key, 0, timeout=60):
-            current = 0
+        if cache.add(key, 1, timeout=60):
+            current = 1
         else:
             current = cache.incr(key)
     except ValueError:
-        current = 0
+        current = 1
         cache.set(key, current, timeout=60)
-    if current >= getattr(source, "rate_limit_per_minute", 60):
+    if current > source.rate_limit_per_minute:
         raise SourceRateLimitExceeded(f"Rate limit atingido para source={source.pk}")
 
 
