@@ -27,3 +27,13 @@ def test_listing_price_history_belongs_to_listing():
     history = ListingPriceHistory.objects.create(listing=listing, price="640000.00")
 
     assert list(listing.price_history.all()) == [history]
+
+
+@pytest.mark.django_db
+def test_admin_prevents_price_and_history_edits(admin_client):
+    listing = ListingFactory.create(price="650000.00")
+    response = admin_client.get(f"/admin/listings/listing/{listing.pk}/change/")
+    assert "price" not in response.context["adminform"].form.fields
+    assert "price" in response.context["adminform"].readonly_fields
+    response = admin_client.get("/admin/listings/listingpricehistory/add/")
+    assert response.status_code == 403

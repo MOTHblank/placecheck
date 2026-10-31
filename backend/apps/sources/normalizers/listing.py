@@ -11,6 +11,15 @@ def _decimal(value: object | None) -> Decimal | None:
     return number.quantize(Decimal("0.01")) if number is not None else None
 
 
+def _money(value: object | None) -> Decimal | None:
+    # Brazilian strings may omit cents. Numeric inputs always use decimal dots.
+    if isinstance(value, str):
+        text = value.strip().replace("R$", "").strip()
+        if re.fullmatch(r"-?\d{1,3}(?:\.\d{3})+", text):
+            value = text.replace(".", "")
+    return _decimal(value)
+
+
 def _parse_decimal(value: object | None) -> Decimal | None:
     if value is None or value == "":
         return None
@@ -50,9 +59,9 @@ def normalize_listing(raw: RawListing) -> NormalizedListing:
         description=_text(raw.description),
         transaction_type={"venda": "sale", "aluguel": "rent"}.get(transaction_type, transaction_type),
         property_type={"apartamento": "apartment", "casa": "house", "terreno": "land"}.get(property_type, property_type),
-        price=_decimal(raw.price),
-        condominium_fee=_decimal(raw.condominium_fee),
-        iptu=_decimal(raw.iptu),
+        price=_money(raw.price),
+        condominium_fee=_money(raw.condominium_fee),
+        iptu=_money(raw.iptu),
         area=_decimal(raw.area),
         bedrooms=_integer(raw.bedrooms),
         bathrooms=_integer(raw.bathrooms),

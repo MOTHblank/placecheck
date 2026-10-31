@@ -29,7 +29,7 @@ class SearchParameters(serializers.Serializer):
 
 
 def offer_constraint(params):
-    conditions = Q(is_active=True)
+    conditions = Q(is_active=True, source__is_published=True)
     for field, lookup in {
         "city": "city__icontains", "state": "state__iexact", "neighborhood": "neighborhood__icontains",
         "transaction_type": "transaction_type", "property_type": "property_type",

@@ -29,7 +29,7 @@ export function OfferDialog({ id, params, transaction, onClose }: { id: number; 
       : !property ? <p role="status">Carregando ofertas…</p>
         : <><p>{propertyLabels[property.property_type] || property.property_type} — {property.neighborhood}, {property.city}</p>
           <div className="offer-list">{property.listings.filter((offer) => offer.transaction_type === transaction).map((offer) => {
-            const isDemo = new URL(offer.url).hostname.endsWith(".example");
+            const isDemo = offer.is_demo;
             return <article className="offer-item" key={offer.id}><h3>{offer.source}</h3><strong>{formatPrice(offer.price, transaction)}</strong><p>{offer.description}</p>
               <p>Condomínio: {formatPrice(offer.condominium_fee, "sale")} · IPTU: {formatPrice(offer.iptu, "sale")}</p>
               <p>{offer.days_on_market} dias em acompanhamento · {formatPrice(offer.price_per_m2, "sale")}/m²</p>

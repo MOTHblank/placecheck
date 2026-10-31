@@ -9,8 +9,9 @@ from .base import ListingProvider
 class ManualProvider(ListingProvider):
     """Provider inicial para feeds autorizados fornecidos pela aplicação."""
 
-    def __init__(self, records: Mapping[str, Mapping[str, Any]]):
+    def __init__(self, records: Mapping[str, Mapping[str, Any]], *, complete: bool = True):
         self.records = records
+        self.is_complete_snapshot = complete
 
     def discover(self) -> Iterable[str]:
         return self.records.keys()

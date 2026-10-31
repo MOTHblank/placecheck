@@ -52,3 +52,24 @@ def test_normalizer_converts_brazilian_listing_values():
     assert normalized.property_type == "apartment"
     assert normalized.state == "SP"
     assert normalized.latitude == Decimal("-23.567800")
+
+
+@pytest.mark.parametrize("price", ["R$ 650.000", "R$650.000,00", 650000, Decimal("650000.00")])
+def test_normalizer_handles_plan_prices_without_changing_coordinates(price):
+    record = sample_record()
+    record.update(price=price, condominium_fee="R$ 1.200", iptu="2.400", latitude=-23.5678)
+    normalized = normalize_listing(ManualProvider({}).parse(record))
+    assert normalized.price == Decimal("650000.00")
+    assert normalized.condominium_fee == Decimal("1200.00")
+    assert normalized.iptu == Decimal("2400.00")
+    assert normalized.latitude == Decimal("-23.567800")
+
+
+def test_normalizer_preserves_numeric_decimals_and_missing_values():
+    record = sample_record()
+    record.update(price=650.125, condominium_fee=None, iptu="", area=80.125)
+    normalized = normalize_listing(ManualProvider({}).parse(record))
+    assert normalized.price == Decimal("650.12")
+    assert normalized.area == Decimal("80.12")
+    assert normalized.condominium_fee is None
+    assert normalized.iptu is None

@@ -45,6 +45,7 @@ class Command(BaseCommand):
                     "base_url": f"https://fonte-{number}.example",
                     # Beat must not sync an empty manual feed and deactivate these offers.
                     "is_active": False,
+                    "is_demo": True,
                     "can_store_description": True,
                 },
             )

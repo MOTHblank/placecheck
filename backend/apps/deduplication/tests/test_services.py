@@ -10,6 +10,7 @@ from apps.deduplication.services import (
 from apps.listings.tests.factories import ListingFactory
 from apps.properties.models import Property
 from apps.sources.tests.factories import SourceFactory
+from django.test import override_settings
 
 
 @pytest.mark.django_db
@@ -103,3 +104,28 @@ def test_generic_titles_even_at_same_coordinates_require_review():
     second = ListingFactory.create(property=None, source=SourceFactory.create(), latitude="-23.561000", longitude="-46.690000")
     assert match_listing_to_property(first) != match_listing_to_property(second)
     assert second.match_decisions.latest("id").outcome == "possible"
+
+
+@pytest.mark.django_db
+def test_configured_weights_affect_score_but_never_replace_identity_evidence():
+    first = ListingFactory.create(property=None, latitude="-23.561000", longitude="-46.690000", title="Apartamento em Pinheiros unidade 401")
+    second = ListingFactory.create(property=None, source=SourceFactory.create(), latitude="-23.561000", longitude="-46.690000", title=first.title)
+    with override_settings(DEDUP_SCORE_WEIGHTS={"compatible": 0.1, "coordinates": 0.1, "area": 0.1, "title": 0.1}):
+        assert calculate_similarity(first, second).score == 0.4
+        assert not calculate_similarity(first, second).automatic
+    with override_settings(DEDUP_SCORE_WEIGHTS={"compatible": 1.0, "coordinates": 0.0, "area": 0.0, "title": 0.0}):
+        second.latitude = None
+        assert not calculate_similarity(first, second).automatic
+
+
+@pytest.mark.django_db
+def test_candidates_exclude_known_conflicts_and_keep_missing_characteristics():
+    from apps.deduplication.services import select_candidates
+
+    first = ListingFactory.create(area="80", bedrooms=2)
+    compatible = ListingFactory.create(area="81", bedrooms=2)
+    missing = ListingFactory.create(area=None, bedrooms=None)
+    ListingFactory.create(area="160", bedrooms=2)
+    ListingFactory.create(area="80", bedrooms=4)
+    ListingFactory.create(area="80", bedrooms=2, neighborhood="Moema")
+    assert set(select_candidates(first).values_list("pk", flat=True)) == {compatible.pk, missing.pk}

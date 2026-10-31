@@ -1,0 +1,28 @@
+# Always use -p placecheck-acceptance with this override; existing volumes stay intact.
+services:
+  backend:
+    ports: !override
+      - "127.0.0.1:18000:8000"
+    environment:
+      MANUAL_PROVIDER_RECORDS_FILE: /app/.runtime/acceptance-inventory.json
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  celery:
+    command: celery -A config worker --loglevel=info --concurrency=2
+    environment:
+      MANUAL_PROVIDER_RECORDS_FILE: /app/.runtime/acceptance-inventory.json
+  celery-beat:
+    command: celery -A config beat --loglevel=info --schedule=/tmp/acceptance-celerybeat
+    environment:
+      CELERY_SYNC_INTERVAL_SECONDS: "3"
+  frontend:
+    ports: !override
+      - "127.0.0.1:15173:5173"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 3s
+      timeout: 3s
+      retries: 30

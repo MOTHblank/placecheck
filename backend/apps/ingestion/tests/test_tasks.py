@@ -55,3 +55,17 @@ def test_fetch_enforces_source_specific_request_limit():
         assert fetch_listing.run(source.pk, "manual-001") == sample_record()
         with pytest.raises(SourceRateLimitExceeded):
             fetch_listing.run(source.pk, "manual-001")
+
+
+@pytest.mark.django_db
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, MANUAL_PROVIDER_RECORDS={})
+def test_async_invalid_configuration_is_reported_without_inactivating_listings():
+    from apps.listings.tests.factories import ListingFactory
+
+    source = SourceFactory.create()
+    listing = ListingFactory.create(source=source)
+    result = sync_source.delay(source.pk)
+    assert result.failed()
+    assert source.sync_runs.latest("id").status == "failed"
+    listing.refresh_from_db()
+    assert listing.is_active

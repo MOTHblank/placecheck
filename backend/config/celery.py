@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
@@ -10,6 +11,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "sync-active-sources-every-15-minutes": {
         "task": "apps.ingestion.tasks.sync_active_sources",
-        "schedule": 900.0,
+        "schedule": settings.CELERY_SYNC_INTERVAL_SECONDS,
     },
 }

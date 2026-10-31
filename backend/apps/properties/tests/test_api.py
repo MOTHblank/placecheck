@@ -73,6 +73,11 @@ def test_openapi_schema_is_available(api_client):
     assert response.status_code == 200
     assert response.data["info"]["title"] == "Placecheck API"
     assert "/api/properties/" in response.data["paths"]
+    parameters = response.data["paths"]["/api/properties/"]["get"]["parameters"]
+    assert {"city", "q", "max_price", "min_area", "ordering", "limit", "offset"} <= {item["name"] for item in parameters}
+    redirect = response.data["paths"]["/out/{listing_id}/"]["get"]
+    assert "302" in redirect["responses"]
+    assert "404" in redirect["responses"]
 
 
 @pytest.mark.django_db
@@ -129,3 +134,55 @@ def test_additional_filters_and_ordering_use_matching_offers(api_client):
     assert [item["id"] for item in response.data["results"]] == [large.property_id]
     response = api_client.get("/api/properties/", {"ordering": "price_per_m2"})
     assert [item["id"] for item in response.data["results"]] == [large.property_id, small.property_id]
+
+
+@pytest.mark.django_db
+def test_source_pause_preserves_publication_but_withdrawal_hides_only_its_offers(api_client):
+    from apps.properties.services import refresh_property
+
+    property_ = PropertyFactory.create()
+    withdrawn = ListingFactory.create(property=property_, area="90", description="Restricted", price="500000")
+    retained = ListingFactory.create(property=property_, area="100", price="600000")
+    source = withdrawn.source
+    source.is_active = False
+    source.save()
+    assert api_client.get(f"/out/{withdrawn.pk}/").status_code == 302
+    source.is_published = False
+    source.save()
+    response = api_client.get(f"/api/properties/{property_.pk}/")
+    assert response.status_code == 200
+    assert response.data["listing_count"] == 1
+    assert response.data["min_price"] == "600000.00"
+    assert response.data["area"] == "100.00"
+    assert [offer["id"] for offer in response.data["listings"]] == [retained.pk]
+    assert api_client.get(f"/out/{withdrawn.pk}/").status_code == 404
+    retained.source.is_published = False
+    retained.source.save()
+    assert api_client.get(f"/api/properties/{property_.pk}/").status_code == 404
+    assert api_client.get("/api/properties/").data["count"] == 0
+
+
+@pytest.mark.django_db
+def test_revocation_removes_stored_content_and_history(api_client):
+    from apps.ingestion.services import persist_listing
+    from apps.sources.normalizers import normalize_listing
+    from apps.sources.providers import ManualProvider
+    from apps.sources.tests.test_provider import sample_record
+
+    source = SourceFactory.create(can_store_description=True)
+    normalized = normalize_listing(ManualProvider({}).parse(sample_record()))
+    listing = persist_listing(source, normalized)
+    assert listing.description
+    assert listing.price_history.count() == 1
+    source.can_store_description = False
+    source.can_retain_price_history = False
+    source.save()
+    listing.refresh_from_db()
+    assert listing.description == ""
+    assert listing.price_history.count() == 0
+    listing = persist_listing(source, normalized)
+    assert listing.description == ""
+    assert listing.price_history.count() == 0
+    offer = api_client.get(f"/api/properties/{listing.property_id}/").data["listings"][0]
+    assert offer["description"] == ""
+    assert offer["price_history"] == []

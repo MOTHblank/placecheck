@@ -8,6 +8,8 @@ from apps.sources.schemas import RawListing
 class ListingProvider(ABC):
     """Contrato de coleta. Providers não conhecem os models do domínio."""
 
+    is_complete_snapshot = False
+
     @abstractmethod
     def discover(self) -> Iterable[str]:
         raise NotImplementedError

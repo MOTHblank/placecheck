@@ -10,10 +10,12 @@ export type Property = {
   parking_spaces: number | null;
   min_price: string | null;
   listing_count: number;
+  has_demo_offers: boolean;
   price_per_m2: string | null;
   price_drop_percent: number | null;
 };
 export type Offer = {
+  is_demo: boolean;
   id: number;
   source: string;
   title: string;

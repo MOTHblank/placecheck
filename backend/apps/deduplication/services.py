@@ -2,10 +2,13 @@ import math
 import re
 import unicodedata
 from dataclasses import dataclass
+from decimal import Decimal
 from difflib import SequenceMatcher
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
+from django.core.exceptions import ImproperlyConfigured
 
 from apps.listings.models import Listing
 from apps.properties.models import Property
@@ -28,10 +31,31 @@ class SimilarityResult:
 
 
 def select_candidates(listing):
-    return Listing.objects.filter(
-        is_active=True, city__iexact=listing.city, state__iexact=listing.state,
+    candidates = Listing.objects.filter(
+        is_active=True, source__is_published=True, city__iexact=listing.city, state__iexact=listing.state,
         property_type=listing.property_type, property__isnull=False,
     ).exclude(pk=listing.pk).order_by("id")
+    if listing.neighborhood:
+        candidates = candidates.filter(Q(neighborhood__iexact=listing.neighborhood) | Q(neighborhood=""))
+    for field in ("bedrooms", "bathrooms", "parking_spaces", "suites"):
+        value = getattr(listing, field)
+        if value is not None:
+            candidates = candidates.filter(Q(**{field: value}) | Q(**{f"{field}__isnull": True}))
+    if listing.area:
+        area = Decimal(listing.area)
+        candidates = candidates.filter(Q(area__isnull=True) | Q(area=0) | Q(area__gte=area * Decimal("0.95"), area__lte=area / Decimal("0.95")))
+    return candidates
+
+
+def _score_weights():
+    defaults = {"compatible": 0.3, "coordinates": 0.3, "area": 0.2, "title": 0.2}
+    configured = getattr(settings, "DEDUP_SCORE_WEIGHTS", {})
+    if not isinstance(configured, dict) or configured.keys() - defaults.keys():
+        raise ImproperlyConfigured("DEDUP_SCORE_WEIGHTS contém chaves inválidas.")
+    weights = defaults | configured
+    if any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 for value in weights.values()) or sum(weights.values()) > 1.000001:
+        raise ImproperlyConfigured("Pesos devem ser finitos, não negativos e somar no máximo 1.")
+    return weights
 
 
 def _distance(first, second):
@@ -45,6 +69,7 @@ def _distance(first, second):
 
 def calculate_similarity(first, second):
     """Require corroborating identity evidence, never demographics alone."""
+    weights = _score_weights()
     for field in ("city", "state", "property_type", "neighborhood", "bedrooms", "bathrooms", "parking_spaces", "suites"):
         a, b = getattr(first, field), getattr(second, field)
         if a not in (None, "") and b not in (None, "") and _normalize_text(str(a)) != _normalize_text(str(b)):
@@ -65,8 +90,8 @@ def calculate_similarity(first, second):
     close = distance is not None and distance <= getattr(settings, "DEDUP_MAX_AUTO_DISTANCE_METERS", 25)
     area_matches = area_difference is not None and area_difference <= 0.02
     reasons = ["compatible-location-and-characteristics"]
-    score = 0.3
-    for matches, weight, reason in ((close, 0.3, "nearby-coordinates"), (area_matches, 0.2, "area-within-2-percent"), (title_matches, 0.2, "near-identical-title")):
+    score = weights["compatible"]
+    for matches, weight, reason in ((close, weights["coordinates"], "nearby-coordinates"), (area_matches, weights["area"], "area-within-2-percent"), (title_matches, weights["title"], "near-identical-title")):
         if matches:
             score += weight
             reasons.append(reason)
@@ -103,7 +128,7 @@ def match_listing_to_property(listing):
     best, result = ranked[0] if ranked else (None, SimilarityResult(0, ("no-candidate",)))
     # Every active member must agree: a bridge cannot join incompatible units.
     automatic_groups = {}
-    for member in Listing.objects.filter(is_active=True, property_id__in=group_ids).exclude(pk=listing.pk):
+    for member in Listing.objects.filter(is_active=True, source__is_published=True, property_id__in=group_ids).exclude(pk=listing.pk):
         automatic_groups.setdefault(member.property_id, []).append(calculate_similarity(listing, member).automatic)
     valid_groups = {key for key, values in automatic_groups.items() if all(values)}
     matches = [(candidate, similarity) for candidate, similarity in ranked if similarity.automatic and candidate.property_id in valid_groups]
@@ -112,7 +137,7 @@ def match_listing_to_property(listing):
         assigned = best.property
         outcome = "automatic"
     else:
-        peers = Listing.objects.filter(property_id=previous_id, is_active=True).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
+        peers = Listing.objects.filter(property_id=previous_id, is_active=True, source__is_published=True).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
         assigned = listing.property if previous_id and not peers.exists() else _property_from_listing(listing)
         outcome = "possible" if result.score >= 0.5 else "separate"
     Listing.objects.filter(pk=listing.pk).update(property=assigned)

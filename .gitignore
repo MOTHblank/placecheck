@@ -25,3 +25,6 @@ celerybeat-schedule*
 .playwright-cli/
 output/playwright/
 output/backups/
+.runtime/
+test-results/
+playwright-report/

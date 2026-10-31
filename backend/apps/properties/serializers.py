@@ -6,7 +6,13 @@ from apps.listings.models import Listing
 from .models import Property
 
 
+class PriceHistorySerializer(serializers.Serializer):
+    price = serializers.DecimalField(max_digits=14, decimal_places=2)
+    captured_at = serializers.DateTimeField()
+
+
 class ListingOfferSerializer(serializers.ModelSerializer):
+    is_demo = serializers.BooleanField(source="source.is_demo", read_only=True)
     source = serializers.CharField(source="source.name", read_only=True)
     previous_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
     initial_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
@@ -15,19 +21,17 @@ class ListingOfferSerializer(serializers.ModelSerializer):
     price_per_m2 = serializers.DecimalField(max_digits=18, decimal_places=2, read_only=True, allow_null=True)
     price_drop_percent = serializers.FloatField(read_only=True, allow_null=True)
     days_on_market = serializers.SerializerMethodField()
-    price_history = serializers.SerializerMethodField()
+    price_history = PriceHistorySerializer(many=True, read_only=True)
 
     def get_days_on_market(self, obj):
         return max(0, (timezone.now() - obj.first_seen_at).days)
-
-    def get_price_history(self, obj):
-        return [{"price": str(item.price), "captured_at": item.captured_at.isoformat()} for item in obj.price_history.all()]
 
     class Meta:
         model = Listing
         fields = (
             "id",
             "source",
+            "is_demo",
             "title",
             "description",
             "transaction_type",
@@ -48,6 +52,7 @@ class ListingOfferSerializer(serializers.ModelSerializer):
 
 
 class PropertyListSerializer(serializers.ModelSerializer):
+    has_demo_offers = serializers.BooleanField(read_only=True)
     listing_count = serializers.IntegerField(read_only=True)
     min_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
     price_per_m2 = serializers.DecimalField(max_digits=18, decimal_places=2, read_only=True, allow_null=True)
@@ -67,17 +72,15 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "suites",
             "parking_spaces",
             "listing_count",
+            "has_demo_offers",
             "min_price",
             "price_per_m2", "price_drop_percent",
         )
 
 
 class PropertyDetailSerializer(PropertyListSerializer):
-    listings = serializers.SerializerMethodField()
+    listings = ListingOfferSerializer(source="matching_listings", many=True, read_only=True)
 
     class Meta(PropertyListSerializer.Meta):
         fields = PropertyListSerializer.Meta.fields + ("latitude", "longitude", "listings")
 
-    def get_listings(self, obj):
-        listings = obj.matching_listings
-        return ListingOfferSerializer(listings, many=True).data

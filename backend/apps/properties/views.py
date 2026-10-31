@@ -10,6 +10,7 @@ from apps.listings.models import Listing
 from .filters import SearchParameters
 from .selectors import property_search
 from .serializers import PropertyDetailSerializer, PropertyListSerializer
+from .schema import PropertySchema, RedirectSchema
 
 
 class PropertyPagination(pagination.LimitOffsetPagination):
@@ -18,6 +19,7 @@ class PropertyPagination(pagination.LimitOffsetPagination):
 
 
 class PropertyListView(generics.ListAPIView):
+    schema = PropertySchema()
     permission_classes = [AllowAny]
     serializer_class = PropertyListSerializer
     pagination_class = PropertyPagination
@@ -29,6 +31,7 @@ class PropertyListView(generics.ListAPIView):
 
 
 class PropertyDetailView(generics.RetrieveAPIView):
+    schema = PropertySchema()
     permission_classes = [AllowAny]
     serializer_class = PropertyDetailSerializer
 
@@ -39,10 +42,11 @@ class PropertyDetailView(generics.RetrieveAPIView):
 
 
 class ListingRedirectView(APIView):
+    schema = RedirectSchema()
     permission_classes = [AllowAny]
 
     def get(self, request, listing_id):
-        listing = get_object_or_404(Listing.objects.select_related("property"), pk=listing_id, is_active=True)
+        listing = get_object_or_404(Listing.objects.select_related("property"), pk=listing_id, is_active=True, source__is_published=True)
         if not request.session.session_key:
             request.session.create()
         RedirectEvent.objects.create(

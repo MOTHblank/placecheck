@@ -55,7 +55,7 @@ function App() {
         onClear={clearFilters} onRetry={() => setAttempt((value) => value + 1)} />
     </main>
     {search.propertyId !== null && <OfferDialog id={search.propertyId} params={detailQuery} transaction={search.filters.transaction} onClose={() => navigate({ ...search, propertyId: null })} />}
-    <footer className="site-footer" id="como-funciona"><span>placecheck</span><p>Busque por cidade, compare ofertas e acompanhe preços. Os dados de demonstração são fictícios.</p></footer>
+    <footer className="site-footer" id="como-funciona"><span>placecheck</span><p>Busque por cidade, compare ofertas e acompanhe preços. Contato e negociação acontecem na fonte original.</p></footer>
   </div>;
 }
 

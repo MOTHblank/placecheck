@@ -52,3 +52,32 @@ Proposta ainda não aprovada: separar estoque atual de eventos por período; med
 Nenhuma fonte real está autorizada por evidência presente no repositório. “Ideal Imóveis” não identifica domínio único; “Quarto Andar” não deve ser convertido implicitamente para outro nome.
 Uma parceria precisa identificar o titular e domínio, meio autorizado de entrega, campos permitidos, exibição/comparação, retenção do histórico, atualização, remoção e revogação.
 Existência de documentação de integração de um CRM não concede acesso ou autorização ao Placecheck.
+
+## Remediações dos tickets #2–#6 — 2026-10-31
+
+A tabela acima preserva a baseline anterior. Nesta implementação:
+
+- #2: normalização monetária corrigida, validação atômica de Listing, histórico
+  idempotente observável na API e preço existente/histórico protegidos no admin.
+- #3: pausa e retirada separadas; descrição e retenção de histórico aplicadas na
+  ingestão/admin e revogação remove dados armazenados. Retirada recalcula projeções
+  e impede saída direta, preservando ofertas de outras Fontes.
+- #4: `SyncRun` registra execução, completude, contagens e falhas. Configuração
+  ausente falha; parcial preserva ausências; completo vazio pode inativar. Bloqueio
+  da Fonte protege escrita/reconciliação de tarefas antigas. Discovery e fetch
+  compartilham limites por Fonte e possuem timeout/retry.
+- #5: pesos configuráveis e candidatos filtrados; evidências obrigatórias de
+  identidade, revisão de grupos e auditoria permanecem conservadoras.
+- #6: ordenação mobile, demonstração por Fonte, contratos OpenAPI, versões exatas,
+  lockfile e `npm ci`; `.dockerignore` exclui dependências do host.
+
+Validação: 66 testes backend, Django check e migrations sem divergências; build
+TypeScript/Vite 8.3.5; quatro testes Playwright (desktop/mobile) de jornada e estados.
+O bootstrap isolado utiliza volumes próprios, sem excluir os volumes existentes.
+A prova Beat → Redis → worker sem eager registrou duas capturas idempotentes,
+mudança de preço e snapshot completo vazio que inativou uma oferta. Os comandos
+reproduzíveis estão no README. Fixtures e destinos interceptados não comprovam
+inventário real, autorização, precisão em amostra real ou aceite integral.
+
+Permanecem abertos os insumos humanos #7/#9/#11 e, dependentes deles, as integrações
+#8/#10, métricas #12/#13 e aceite integrado #14. A spec pai #1 não é alterada.
