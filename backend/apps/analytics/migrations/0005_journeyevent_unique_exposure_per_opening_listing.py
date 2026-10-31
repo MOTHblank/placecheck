@@ -25,6 +25,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(merge_repeated_exposures, migrations.RunPython.noop),
+        # PostgreSQL must finish deferred FK triggers before creating the unique index.
+        migrations.RunSQL('SET CONSTRAINTS ALL IMMEDIATE', reverse_sql=migrations.RunSQL.noop),
         migrations.AddConstraint(
             model_name='journeyevent',
             constraint=models.UniqueConstraint(condition=models.Q(('kind', 'exposure')), fields=('context_id', 'listing_key'), name='unique_exposure_per_opening_listing'),

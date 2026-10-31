@@ -30,10 +30,20 @@ o diff com as regras do projeto e o contrato aprovado de métricas.
 - **P2 — Unicidade de exposição incompleta.** Mesmo problema do terceiro achado
   Standards, contra “uma vez por Anúncio/contexto de abertura”. Corrigido com
   validação, serialização e constraint, sem inflar denominador/numerador.
+- **P2 — Janela ao consolidar dados antigos.** Reapontar saídas de uma exposição
+  duplicada para a primeira podia atribuir cliques fora dos 30 minutos dessa
+  exposição original. Uma migration corretiva desfaz essas associações e a
+  classificação booleana, preservando o bruto. Três regressões de upgrade partem
+  do schema anterior, carregam duplicatas e verificam o comando de relatório
+  para cliques dentro, exatamente no limite e fora da janela. Esses testes também
+  revelaram que o PostgreSQL exige concluir triggers FK diferidas antes de criar
+  o índice único após a consolidação; a migration descarrega essas constraints
+  antes do DDL.
 
-Os três casos falharam antes da correção e passaram depois. A suíte final passou
-com 132 testes backend, Django check/migrations sem divergências, build
+Os casos falharam antes da correção e passaram depois. A suíte final passou
+com 135 testes backend, Django check/migrations sem divergências, build
 TypeScript/Vite e 12 testes de navegador. Dados externos reais não foram necessários
 para o aceite aritmético; o relatório de estoque #13 e o aceite integrado #14
-permanecem pendentes. Achados originais: Standards 3 e Spec 2, maior severidade P2
-em cada eixo; três problemas únicos, corrigidos.
+permanecem pendentes. As duas revisões confirmaram o fechamento dos achados após
+as correções. Achados: Standards 3 e Spec 3, maior severidade P2 em cada eixo;
+quatro problemas de revisão únicos, corrigidos, sem pendências.

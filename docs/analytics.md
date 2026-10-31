@@ -154,7 +154,7 @@ correta. Se usar outro projeto/portas, defina `PLAYWRIGHT_BASE_URL`,
 do override relativo à pasta frontend) para o teste consultar o comando nesse stack.
 O dataset real do piloto não é usado nesse aceite determinístico.
 
-Validação em 31/10/2026: 132 testes backend (dois avisos de depreciação Django),
+Validação em 31/10/2026: 135 testes backend (dois avisos de depreciação Django),
 Django check e migrations sem divergências, build TypeScript/Vite e 12 testes
 Playwright desktop/mobile aprovados. O Compose de aceitação foi construído e
 iniciado com volumes próprios nas portas 38000/35173, preservando o stack que já
