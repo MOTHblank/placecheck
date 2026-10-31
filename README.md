@@ -21,6 +21,17 @@ Possíveis sources:
 - Ideal Imóveis
 - Quarto Andar
 
+### Estudo de entrada VRSync (#15)
+
+A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta
+documentação oficial, exemplos sintéticos e o pipeline atual. A recomendação é
+adiar a integração até a autorização e amostra do parceiro (#7); VRSync permanece
+uma opção para um provider específico em #8. O estudo detalha modalidades
+venda/aluguel, periodicidade de preços e IPTU, privacidade e snapshots completos.
+Não há provider XML concreto, feed real configurado ou compatibilidade real
+comprovada. Associação de duas modalidades da mesma Fonte e compartilhamento de
+snapshot entre tasks exigem trabalho explícito em #8.
+
 ## Banco fictício para testes
 
 Com os serviços em execução, carregue o dataset local:
