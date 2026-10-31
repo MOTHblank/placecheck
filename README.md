@@ -111,7 +111,7 @@ docker compose exec -T backend python manage.py purge_analytics
 
 O relatório é restrito ao acesso autorizado ao ambiente, sem endpoint público.
 Consulte o guia para período, timezone, Fonte, mercado, exclusões e limitações.
-Validação do #12: 128 testes backend, build TypeScript/Vite, verificações Django e
+Validação do #12: 132 testes backend, build TypeScript/Vite, verificações Django e
 12 testes Playwright em desktop/celular passaram num Compose isolado.
 
 ### Correção dos dados

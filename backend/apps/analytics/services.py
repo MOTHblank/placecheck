@@ -128,18 +128,24 @@ def accept_event(request, payload):
             source__is_published=True, source__is_demo=False, source__can_retain_analytics=True).exists():
             return {"accepted": False}, False
     if kind == "exposure":
+        source_id = Listing.objects.filter(pk=listing_id).values_list("source_id", flat=True).first()
+        source = Source.objects.select_for_update().filter(pk=source_id).first()
+        if not source or not source.is_published or source.is_demo or not source.can_retain_analytics:
+            return {"accepted": False}, False
         if not JourneyEvent.objects.filter(pk=values["context_id"], kind="view",
                                            created_at__gt=timezone.now() - RETENTION).exists():
             raise ValidationError("Contexto de abertura indisponível.")
+        # Read membership, activity and market only after preceding ingestion/reconciliation committed.
         listing = Listing.objects.select_related("source").filter(
-            pk=listing_id, property_id=data["property"], is_active=True, source__is_published=True,
-            source__is_demo=False, source__can_retain_analytics=True,
+            pk=listing_id, source_id=source.pk, property_id=data["property"], is_active=True,
         ).first()
         if not listing:
             return {"accepted": False}, False
-        source = Source.objects.select_for_update().get(pk=listing.source_id)
-        if not source.is_published or source.is_demo or not source.can_retain_analytics:
-            return {"accepted": False}, False
+        recorded = JourneyEvent.objects.filter(kind="exposure", context_id=values["context_id"], listing_key=listing_id).first()
+        if recorded:
+            if recorded.pk == payload["event_id"] and recorded.payload_digest == fingerprint:
+                return event_result(recorded, data), False
+            raise IdentityConflict("Oferta já exposta nesta abertura; reutilize a identidade original.")
         listing.source = source
         values.update(snapshot(listing))
     event, created = JourneyEvent.objects.get_or_create(pk=payload["event_id"], defaults={

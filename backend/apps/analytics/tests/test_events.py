@@ -10,6 +10,9 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
 from django.utils import timezone
+from django.db import connection
+from django.db import close_old_connections
+from concurrent.futures import ThreadPoolExecutor
 
 from apps.listings.tests.factories import ListingFactory
 from apps.analytics.models import MeasurementWindow
@@ -79,6 +82,58 @@ def test_two_exposures_and_repeated_clicks_produce_fifty_percent_ctr():
 
 
 @pytest.mark.django_db
+def test_another_event_identity_cannot_repeat_the_same_offer_in_one_opening():
+    client = APIClient()
+    listing = ListingFactory.create()
+    context = open_view(client, listing)
+    event, _ = expose(client, context, listing)
+    repeated = client.post("/api/analytics/events/", event | {"event_id": str(uuid4())}, format="json")
+    assert repeated.status_code == 409
+    assert command_report("--source", str(listing.source_id))["sources"][0]["exposures"] == 1
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize("same_identity", [False, True])
+def test_simultaneous_identities_for_one_exposure_cannot_inflate_the_denominator(same_identity):
+    listing = ListingFactory.create()
+    context = open_view(APIClient(), listing)
+    identity = str(uuid4())
+    def send():
+        close_old_connections()
+        try:
+            return APIClient().post("/api/analytics/events/", {"kind": "exposure", "event_id": identity if same_identity else str(uuid4()),
+                "context": context, "listing_id": listing.pk}, format="json").status_code
+        finally:
+            close_old_connections()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(send) for _ in range(2)]
+        statuses = sorted(future.result(timeout=15) for future in futures)
+    assert statuses == ([200, 201] if same_identity else [201, 409])
+    assert command_report("--source", str(listing.source_id))["sources"][0]["exposures"] == 1
+
+
+@pytest.mark.django_db
+def test_exposure_revalidates_offer_after_waiting_for_source_lock():
+    client = APIClient()
+    listing = ListingFactory.create()
+    context = open_view(client, listing)
+    inactivated = False
+    def another_ingestion_finishes_before_lock(execute, sql, params, many, context):
+        nonlocal inactivated
+        if not inactivated and '"sources_source"' in sql and "FOR UPDATE" in sql:
+            inactivated = True
+            # Storage-boundary interleaving: a reconciler finishes while this request waits.
+            type(listing).objects.filter(pk=listing.pk).update(is_active=False)
+        return execute(sql, params, many, context)
+    with connection.execute_wrapper(another_ingestion_finishes_before_lock):
+        response = client.post("/api/analytics/events/", {"kind": "exposure", "event_id": str(uuid4()),
+            "context": context, "listing_id": listing.pk}, format="json")
+    assert inactivated
+    assert response.status_code == 202
+    assert command_report()["sources"] == []
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("seconds,attributed", [(0, 1), (1799, 1), (1800, 0), (1801, 0)])
 def test_attribution_window_is_half_open(seconds, attributed):
     client, moment = APIClient(), timezone.now()
@@ -138,6 +193,12 @@ def test_withdrawal_and_listing_source_deletion_preserve_permitted_historical_co
     row = command_report("--source", str(key))["sources"][0]
     assert row["source_name"] == name
     assert row["raw_redirects"] == 1 and row["ctr_percent"] == 100.0
+    empty_market = command_report("--source", str(key), "--city", "Outra cidade", "--state", "BA", "--transaction", "sale")["sources"][0]
+    assert empty_market["source_name"] == name
+    assert empty_market["exposures"] == empty_market["raw_redirects"] == 0
+    assert empty_market["ctr_percent"] is None
+    empty_period = command_report("--source", str(key), "--start", timezone.now().isoformat())["sources"][0]
+    assert empty_period["source_name"] == name and empty_period["ctr_percent"] is None
 
 
 @pytest.mark.django_db

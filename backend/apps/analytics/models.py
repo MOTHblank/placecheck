@@ -34,6 +34,8 @@ class JourneyEvent(EventSnapshot):
 
     class Meta:
         indexes = [models.Index(fields=["kind", "created_at"]), models.Index(fields=["source_key", "created_at"])]
+        constraints = [models.UniqueConstraint(fields=["context_id", "listing_key"], condition=models.Q(kind="exposure"),
+                                               name="unique_exposure_per_opening_listing")]
 
 
 class MeasurementWindow(models.Model):

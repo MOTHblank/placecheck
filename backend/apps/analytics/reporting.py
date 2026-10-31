@@ -54,9 +54,11 @@ def journey_report(*, start=None, end=None, timezone_name="America/Bahia", sourc
         raise CommandError("Mercado inválido.")
     events = JourneyEvent.objects.filter(created_at__gte=first, created_at__lt=last, created_at__lte=now).filter(created_at__gt=now - RETENTION)
     redirects = RedirectEvent.objects.filter(created_at__gte=first, created_at__lt=last, created_at__lte=now).filter(created_at__gt=now - RETENTION)
+    retained_events = JourneyEvent.objects.filter(created_at__gt=now - RETENTION, created_at__lte=now)
+    retained_redirects = RedirectEvent.objects.filter(created_at__gt=now - RETENTION, created_at__lte=now)
     if source is not None:
-        known = (Source.objects.filter(pk=source).exists() or JourneyEvent.objects.filter(source_key=source).exists()
-                 or RedirectEvent.objects.filter(source_key=source).exists())
+        known = (Source.objects.filter(pk=source).exists() or retained_events.filter(source_key=source).exists()
+                 or retained_redirects.filter(source_key=source).exists())
         if source < 1 or not known:
             raise CommandError("Fonte desconhecida.")
     unattributed = events.filter(city="", state="", transaction_type="")
@@ -77,7 +79,9 @@ def journey_report(*, start=None, end=None, timezone_name="America/Bahia", sourc
         total = seen.count()
         clicked = seen.filter(redirects__isnull=False).distinct().count()
         historical = (seen.order_by("-created_at").values("source_slug", "source_name").first()
-                      or exits.order_by("-created_at").values("source_slug", "source_name").first())
+                      or exits.order_by("-created_at").values("source_slug", "source_name").first()
+                      or retained_events.filter(source_key=key).order_by("-created_at").values("source_slug", "source_name").first()
+                      or retained_redirects.filter(source_key=key).order_by("-created_at").values("source_slug", "source_name").first())
         if not historical:
             item = Source.objects.get(pk=key)
             historical = {"source_slug": item.slug, "source_name": item.name}

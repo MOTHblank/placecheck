@@ -57,6 +57,9 @@ ofertas excluídos. Ler a API não cria evento. A UI envia POST JSON para
 carregada. O endpoint valida UUID, comprovante e elegibilidade. Respostas: 201 novo,
 200 retransmissão idempotente, 202 excluído, 400 inválido e 409 identidade usada com
 conteúdo diferente. O OpenAPI documenta esse contrato.
+Uma segunda identidade para a mesma oferta/abertura também recebe 409; reutilize
+a identidade original para retransmitir. Bloqueio da Fonte e constraint no banco
+impedem inflação por submissões simultâneas.
 
 Uma abertura aceita recebe `context_token`. Somente ofertas retornadas nesse detalhe
 podem ser registradas como exposição, e precisam continuar ativas/publicadas e com
@@ -151,11 +154,14 @@ correta. Se usar outro projeto/portas, defina `PLAYWRIGHT_BASE_URL`,
 do override relativo à pasta frontend) para o teste consultar o comando nesse stack.
 O dataset real do piloto não é usado nesse aceite determinístico.
 
-Validação em 31/10/2026: 128 testes backend (dois avisos de depreciação Django),
+Validação em 31/10/2026: 132 testes backend (dois avisos de depreciação Django),
 Django check e migrations sem divergências, build TypeScript/Vite e 12 testes
 Playwright desktop/mobile aprovados. O Compose de aceitação foi construído e
 iniciado com volumes próprios nas portas 38000/35173, preservando o stack que já
 ocupava as portas padrão. O teste de CTR consulta o comando real de relatório.
+A limpeza também foi enfileirada no Redis e executada pelo worker real; retornou
+somente contagens/cutoff. Desenvolvimento carregou a exclusão interna explicitamente.
+Revisão e correções estão em [analytics-review.md](analytics-review.md).
 
 Os testes verificam aritmética de 50%, oferta retornada mas não visível, retransmissão,
 submissão repetida, navegação, falha de instrumentação, janelas temporais/meia-noite,
