@@ -4,6 +4,7 @@ from django.urls import path
 from django.urls import include
 from rest_framework.schemas import get_schema_view
 from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
 
 from apps.properties.views import ListingRedirectView
 
@@ -25,6 +26,7 @@ urlpatterns = [
             version="1.0.0",
             public=True,
             permission_classes=[AllowAny],
+            renderer_classes=[JSONRenderer],
         ),
         name="openapi-schema",
     ),

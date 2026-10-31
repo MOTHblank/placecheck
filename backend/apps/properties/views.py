@@ -1,4 +1,3 @@
-from django.db.models import Count, Min, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, pagination
 from rest_framework.permissions import AllowAny
@@ -8,8 +7,8 @@ from django.http import HttpResponseRedirect
 from apps.analytics.models import RedirectEvent
 from apps.listings.models import Listing
 
-from .filters import filter_properties, ordering_expression
-from .models import Property
+from .filters import SearchParameters
+from .selectors import property_search
 from .serializers import PropertyDetailSerializer, PropertyListSerializer
 
 
@@ -24,13 +23,9 @@ class PropertyListView(generics.ListAPIView):
     pagination_class = PropertyPagination
 
     def get_queryset(self):
-        active_listings = Q(listings__is_active=True)
-        queryset = Property.objects.filter(active_listings).annotate(
-            listing_count=Count("listings", filter=active_listings, distinct=True),
-            min_price=Min("listings__price", filter=active_listings),
-        ).distinct()
-        queryset = filter_properties(queryset, self.request.query_params)
-        return queryset.order_by(ordering_expression(self.request.query_params.get("ordering", "-updated_at")))
+        params = SearchParameters(data=self.request.query_params)
+        params.is_valid(raise_exception=True)
+        return property_search(params.validated_data)
 
 
 class PropertyDetailView(generics.RetrieveAPIView):
@@ -38,11 +33,9 @@ class PropertyDetailView(generics.RetrieveAPIView):
     serializer_class = PropertyDetailSerializer
 
     def get_queryset(self):
-        active_listings = Q(listings__is_active=True)
-        return Property.objects.filter(active_listings).annotate(
-            listing_count=Count("listings", filter=active_listings, distinct=True),
-            min_price=Min("listings__price", filter=active_listings),
-        ).distinct()
+        params = SearchParameters(data=self.request.query_params)
+        params.is_valid(raise_exception=True)
+        return property_search(params.validated_data, include_offers=True)
 
 
 class ListingRedirectView(APIView):

@@ -6,3 +6,4 @@ psycopg[binary]==3.2.9
 pytest==8.3.5
 pytest-django==4.11.1
 uritemplate==4.2.0
+inflection==0.5.1

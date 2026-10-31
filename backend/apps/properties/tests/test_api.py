@@ -6,6 +6,9 @@ from apps.analytics.models import RedirectEvent
 from apps.listings.tests.factories import ListingFactory
 from apps.properties.tests.factories import PropertyFactory
 from apps.sources.tests.factories import SourceFactory
+from apps.listings.models import ListingPriceHistory
+from django.utils import timezone
+from datetime import timedelta
 
 
 @pytest.fixture
@@ -70,3 +73,59 @@ def test_openapi_schema_is_available(api_client):
     assert response.status_code == 200
     assert response.data["info"]["title"] == "Placecheck API"
     assert "/api/properties/" in response.data["paths"]
+
+
+@pytest.mark.django_db
+def test_search_never_combines_sale_and_rent_or_different_offers(api_client):
+    property_ = PropertyFactory.create()
+    ListingFactory.create(property=property_, price="900000", transaction_type="sale", bedrooms=1)
+    ListingFactory.create(property=property_, price="3000", transaction_type="rent", bedrooms=4)
+    response = api_client.get("/api/properties/", {"transaction_type": "sale", "max_price": 500000})
+    assert response.status_code == 200
+    assert response.data["count"] == 0
+    response = api_client.get("/api/properties/", {"transaction_type": "sale", "bedrooms": 3})
+    assert response.data["count"] == 0
+    response = api_client.get("/api/properties/", {"transaction_type": "sale"})
+    assert response.data["results"][0]["min_price"] == "900000.00"
+    assert response.data["results"][0]["listing_count"] == 1
+    response = api_client.get(f"/api/properties/{property_.pk}/", {"transaction_type": "sale"})
+    assert len(response.data["listings"]) == 1
+    assert response.data["min_price"] == "900000.00"
+
+
+@pytest.mark.django_db
+def test_price_range_must_match_one_offer_and_invalid_values_return_400(api_client):
+    property_ = PropertyFactory.create()
+    ListingFactory.create(property=property_, price="500000")
+    ListingFactory.create(property=property_, price="900000")
+    response = api_client.get("/api/properties/", {"min_price": 600000, "max_price": 800000})
+    assert response.data["count"] == 0
+    for params in ({"min_price": "abc"}, {"bedrooms": -1}, {"min_area": 100, "max_area": 50}):
+        assert api_client.get("/api/properties/", params).status_code == 400
+
+
+@pytest.mark.django_db
+def test_details_expose_price_history_and_derived_metrics(api_client):
+    listing = ListingFactory.create(price="600000", area="100")
+    for days, price in ((30, "650000"), (15, "620000"), (0, "600000")):
+        history = ListingPriceHistory.objects.create(listing=listing, price=price)
+        ListingPriceHistory.objects.filter(pk=history.pk).update(captured_at=timezone.now() - timedelta(days=days))
+    response = api_client.get(f"/api/properties/{listing.property_id}/")
+    assert response.status_code == 200
+    offer = response.data["listings"][0]
+    assert offer["previous_price"] == "620000.00"
+    assert offer["lowest_price"] == "600000.00"
+    assert offer["highest_price"] == "650000.00"
+    assert offer["price_per_m2"] == "6000.00"
+    assert offer["price_drop_percent"] == pytest.approx(7.69230769)
+    assert len(offer["price_history"]) == 3
+
+
+@pytest.mark.django_db
+def test_additional_filters_and_ordering_use_matching_offers(api_client):
+    small = ListingFactory.create(area="50", bathrooms=1, parking_spaces=0, price="500000")
+    large = ListingFactory.create(area="100", bathrooms=3, parking_spaces=2, price="600000")
+    response = api_client.get("/api/properties/", {"min_area": 80, "bathrooms": 2, "parking_spaces": 1})
+    assert [item["id"] for item in response.data["results"]] == [large.property_id]
+    response = api_client.get("/api/properties/", {"ordering": "price_per_m2"})
+    assert [item["id"] for item in response.data["results"]] == [large.property_id, small.property_id]
