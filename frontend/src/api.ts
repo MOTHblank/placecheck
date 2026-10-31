@@ -19,6 +19,7 @@ export type Offer = {
   is_demo: boolean;
   id: number;
   source: string;
+  source_id: number;
   source_url: string;
   attribution_text: string;
   sale_method: string;
@@ -38,8 +39,8 @@ export type Offer = {
   days_on_market: number;
   price_history: { price: string; captured_at: string }[];
 };
-export type PropertyDetail = Property & { listings: Offer[] };
-export type PropertyPage = { count: number; results: Property[]; next: string | null };
+export type PropertyDetail = Property & { listings: Offer[]; analytics_receipt?: string | null };
+export type PropertyPage = { count: number; results: Property[]; next: string | null; analytics_receipt?: string | null };
 
 async function getJson<T>(url: string, signal: AbortSignal): Promise<T> {
   const response = await fetch(url, { signal, headers: { Accept: "application/json" } });

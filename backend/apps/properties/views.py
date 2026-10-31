@@ -2,13 +2,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, pagination
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from django.http import HttpResponseRedirect
 
-from apps.analytics.models import RedirectEvent
+from apps.analytics.services import receipt, record_redirect
 from apps.listings.models import Listing
 
 from .filters import SearchParameters
-from .selectors import property_search
+from .selectors import matching_offers, property_search
 from .serializers import PropertyDetailSerializer, PropertyListSerializer
 from .schema import PropertySchema, RedirectSchema
 
@@ -24,9 +25,17 @@ class PropertyListView(generics.ListAPIView):
     serializer_class = PropertyListSerializer
     pagination_class = PropertyPagination
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response.data["analytics_receipt"] = receipt(request, "search", self.search_params,
+                                                   offers=matching_offers(self.search_params))
+        response["Cache-Control"] = "private, no-store"
+        return response
+
     def get_queryset(self):
         params = SearchParameters(data=self.request.query_params)
         params.is_valid(raise_exception=True)
+        self.search_params = params.validated_data
         return property_search(params.validated_data)
 
 
@@ -35,9 +44,19 @@ class PropertyDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = PropertyDetailSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        property_ = self.get_object()
+        response = Response(self.get_serializer(property_).data)
+        response.data["analytics_receipt"] = receipt(request, "view", self.search_params,
+            offers=matching_offers(self.search_params).filter(property_id=property_.pk,
+                pk__in=[offer["id"] for offer in response.data["listings"]]), property_=property_)
+        response["Cache-Control"] = "private, no-store"
+        return response
+
     def get_queryset(self):
         params = SearchParameters(data=self.request.query_params)
         params.is_valid(raise_exception=True)
+        self.search_params = params.validated_data
         return property_search(params.validated_data, include_offers=True)
 
 
@@ -46,14 +65,9 @@ class ListingRedirectView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, listing_id):
-        listing = get_object_or_404(Listing.objects.select_related("property"), pk=listing_id, is_active=True, source__is_published=True)
-        if not request.session.session_key:
-            request.session.create()
-        RedirectEvent.objects.create(
-            listing=listing,
-            property=listing.property,
-            session_id=request.session.session_key or "",
-            referer=request.META.get("HTTP_REFERER", "")[:200],
-            user_agent=request.META.get("HTTP_USER_AGENT", ""),
-        )
-        return HttpResponseRedirect(listing.url)
+        listing = get_object_or_404(Listing.objects.select_related("property", "source"), pk=listing_id, is_active=True, source__is_published=True)
+        listing = record_redirect(request, listing)
+        response = HttpResponseRedirect(listing.url)
+        response["Cache-Control"] = "no-store"
+        response["Referrer-Policy"] = "no-referrer"
+        return response

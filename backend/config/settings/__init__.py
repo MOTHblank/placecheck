@@ -74,6 +74,16 @@ ILB_PILOT_UF = os.getenv("ILB_PILOT_UF", "")
 ILB_PILOT_CITY = os.getenv("ILB_PILOT_CITY", "")
 ILB_PILOT_LIMIT = int(os.getenv("ILB_PILOT_LIMIT", "10"))
 CELERY_SYNC_INTERVAL_SECONDS = float(os.getenv("CELERY_SYNC_INTERVAL_SECONDS", "900"))
+ANALYTICS_EXCLUDE_ALL = os.getenv("ANALYTICS_EXCLUDE_ALL", "0") == "1"
+LOGGING = {
+    "version": 1, "disable_existing_loggers": False,
+    "filters": {"redact_attribution": {"()": "apps.analytics.logging.RedactAttribution"}},
+    "handlers": {"analytics_safe_console": {"class": "logging.StreamHandler", "filters": ["redact_attribution"]}},
+    "loggers": {
+        "django.server": {"handlers": ["analytics_safe_console"], "level": "INFO", "propagate": False},
+        "django.request": {"handlers": ["analytics_safe_console"], "level": "WARNING", "propagate": False},
+    },
+}
 
 CACHES = {
     "default": {

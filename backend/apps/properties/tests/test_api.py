@@ -9,6 +9,7 @@ from apps.sources.tests.factories import SourceFactory
 from apps.listings.models import ListingPriceHistory
 from django.utils import timezone
 from datetime import timedelta
+from django.test import override_settings
 
 
 @pytest.fixture
@@ -49,21 +50,23 @@ def test_property_detail_returns_active_offers(api_client):
 
 
 @pytest.mark.django_db
+@override_settings(ANALYTICS_EXCLUDE_ALL=False)
 def test_listing_redirect_records_event_and_redirects_to_original(api_client):
     listing = ListingFactory.create(url="https://portal.example/imovel/123")
 
     response = api_client.get(
         reverse("listing-redirect", args=[listing.pk]),
         HTTP_REFERER="https://placecheck.local/",
-        HTTP_USER_AGENT="pytest",
+        HTTP_USER_AGENT="Mozilla/5.0 Chrome/142.0.0.0",
     )
 
     assert response.status_code == 302
     assert response["Location"] == listing.url
     event = RedirectEvent.objects.get(listing=listing)
-    assert event.referer == "https://placecheck.local/"
-    assert event.user_agent == "pytest"
-    assert event.session_id
+    assert event.source_key == listing.source_id
+    assert event.listing_key == listing.pk
+    assert event.exposure_id is None
+    assert "sessionid" not in response.cookies
 
 
 @pytest.mark.django_db

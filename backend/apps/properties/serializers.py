@@ -12,6 +12,7 @@ class PriceHistorySerializer(serializers.Serializer):
 
 
 class ListingOfferSerializer(serializers.ModelSerializer):
+    source_id = serializers.IntegerField(read_only=True)
     source_url = serializers.URLField(source="source.base_url", read_only=True)
     attribution_text = serializers.CharField(source="source.attribution_text", read_only=True)
     is_demo = serializers.BooleanField(source="source.is_demo", read_only=True)
@@ -33,6 +34,7 @@ class ListingOfferSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "source",
+            "source_id",
             "source_url", "attribution_text", "sale_method", "price_kind", "source_inventory_date",
             "is_demo",
             "title",
@@ -84,7 +86,8 @@ class PropertyListSerializer(serializers.ModelSerializer):
 
 
 class PropertyDetailSerializer(PropertyListSerializer):
+    analytics_receipt = serializers.CharField(read_only=True, allow_null=True)
     listings = ListingOfferSerializer(source="matching_listings", many=True, read_only=True)
 
     class Meta(PropertyListSerializer.Meta):
-        fields = PropertyListSerializer.Meta.fields + ("latitude", "longitude", "listings")
+        fields = PropertyListSerializer.Meta.fields + ("latitude", "longitude", "listings", "analytics_receipt")

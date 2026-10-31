@@ -9,6 +9,10 @@ app = Celery("placecheck")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.conf.beat_schedule = {
+    "purge-expired-analytics-hourly": {
+        "task": "apps.analytics.tasks.purge_expired_analytics",
+        "schedule": 3600,
+    },
     "sync-active-sources-every-15-minutes": {
         "task": "apps.ingestion.tasks.sync_active_sources",
         "schedule": settings.CELERY_SYNC_INTERVAL_SECONDS,

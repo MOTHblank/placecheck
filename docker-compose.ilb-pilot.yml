@@ -5,6 +5,7 @@ services:
       - "127.0.0.1:28000:8000"
     environment:
       ILB_PILOT_ENABLED: "1"
+      ANALYTICS_EXCLUDE_ALL: "1"
       ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
       ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
       ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}
@@ -17,6 +18,7 @@ services:
     command: celery -A config worker --loglevel=info --concurrency=2
     environment:
       ILB_PILOT_ENABLED: "1"
+      ANALYTICS_EXCLUDE_ALL: "1"
       ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
       ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
       ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}

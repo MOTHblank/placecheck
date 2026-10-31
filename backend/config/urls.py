@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 
 from apps.properties.views import ListingRedirectView
+from apps.analytics.views import EventView
 
 
 def health_check(request):
@@ -17,6 +18,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health_check, name="health-check"),
     path("api/", include("apps.properties.urls")),
+    path("api/analytics/events/", EventView.as_view(), name="analytics-events"),
     path("out/<int:listing_id>/", ListingRedirectView.as_view(), name="listing-redirect"),
     path(
         "api/schema/",

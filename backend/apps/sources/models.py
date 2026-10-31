@@ -22,6 +22,7 @@ class Source(models.Model):
     can_store_images = models.BooleanField(default=False)
     can_store_description = models.BooleanField(default=False)
     can_retain_price_history = models.BooleanField(default=True)
+    can_retain_analytics = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -43,6 +44,11 @@ class Source(models.Model):
             from apps.listings.models import ListingPriceHistory
 
             ListingPriceHistory.objects.filter(listing__source=self).delete()
+        if not current.can_retain_analytics:
+            from apps.analytics.models import JourneyEvent, RedirectEvent
+
+            RedirectEvent.objects.filter(source_key=self.pk).delete()
+            JourneyEvent.objects.filter(source_key=self.pk).delete()
         if previous and previous.is_published != current.is_published:
             from apps.properties.services import refresh_property
 
