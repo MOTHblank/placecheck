@@ -96,18 +96,28 @@ class ImoveisLeilaoBrasilProvider(ApiProvider):
         self.uf, self.city, self.limit = uf.upper(), city, limit
         self.client = client or ImoveisLeilaoBrasilClient()
 
-    def discover(self):
-        scope = f"{self.uf}:{self.city}:{self.limit}"
-        catalog_key = f"ilb:catalog:{scope}"
-        snapshot = cache.get(catalog_key)
+    def _cached_references(self, scope):
+        snapshot = cache.get(f"ilb:catalog:{scope}")
         if snapshot:
             records = cache.get(f"ilb:snapshot:{snapshot}")
             if records and records["scope"] == scope:
                 return [f"{snapshot}:{key}" for key in records["items"]]
+        return None
+
+    def discover(self):
+        scope = f"{self.uf}:{self.city}:{self.limit}"
+        catalog_key = f"ilb:catalog:{scope}"
+        references = self._cached_references(scope)
+        if references is not None:
+            return references
         lock_key = f"ilb:download:{scope}"
-        if not cache.add(lock_key, True, timeout=30):
+        # Outlive the task's 45 s hard limit; another task cannot steal a live capture.
+        if not cache.add(lock_key, True, timeout=60):
             raise ProviderTemporaryError("Captura ILB já está em andamento.")
         try:
+            references = self._cached_references(scope)
+            if references is not None:
+                return references
             page = self.client.search(uf=self.uf, city=self.city, limit=self.limit)
             if not isinstance(page, dict) or type(page.get("total")) is not int or page["total"] < 0:
                 raise ValueError("Envelope ILB inválido.")

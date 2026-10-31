@@ -4,7 +4,7 @@ from io import BytesIO
 from urllib.error import HTTPError, URLError
 
 import pytest
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.test import override_settings
 
 from apps.sources.normalizers import normalize_listing
@@ -98,6 +98,26 @@ def test_tasks_reuse_sanitized_immutable_capture_and_daily_cache():
     cache.clear()
     with pytest.raises(ValueError):
         second.fetch(references[0])
+
+
+@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
+def test_capture_completed_by_another_worker_before_lock_acquisition_is_reused():
+    cache.clear()
+    producer = ImoveisLeilaoBrasilProvider(uf="BA", city="salvador", client=CatalogClient([api_item()]))
+    class OfflineClient:
+        def search(self, **kwargs):
+            raise AssertionError("Another worker already fetched this day's catalog")
+    consumer = ImoveisLeilaoBrasilProvider(uf="BA", city="salvador", client=OfflineClient())
+    backend = caches["default"]
+    acquire = backend.add
+    produced = []
+    def acquire_after_other_worker(*args, **kwargs):
+        # Model another process completing its capture between our cache read and lock acquisition.
+        with patch.object(backend, "add", side_effect=acquire):
+            produced.extend(producer.discover())
+        return acquire(*args, **kwargs)
+    with patch.object(backend, "add", side_effect=acquire_after_other_worker):
+        assert list(consumer.discover()) == produced
 
 
 @override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})

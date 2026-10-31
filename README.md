@@ -38,7 +38,8 @@ Após o próximo ciclo do Beat (até 15 minutos), abra http://127.0.0.1:25173.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.
-Validação da integração: 100 testes backend, Django check/migrations, build
+Validação da integração: 101 testes backend, seis regressões Playwright,
+Django check/migrations, build
 TypeScript/Vite e smoke do piloto em desktop/celular; captura real agendada e 302
 para a ficha CAIXA observados. Isso não substitui o aceite real completo de #8.
 

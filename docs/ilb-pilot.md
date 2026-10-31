@@ -140,9 +140,26 @@ Fixtures de contrato são sintéticas, no formato observado, sem endereço/descr
 retidos. Cobrem erros de transporte, validação, cache, modalidades, idempotência,
 atualização sem histórico, vazio parcial e retirada. Screenshots locais estão em
 `output/playwright/ilb-pilot-desktop.png` e `ilb-pilot-mobile.png`, ignorados pelo Git.
-Suíte completa: 100 testes backend aprovados (dois avisos de depreciação Django),
+Suíte completa: 101 testes backend aprovados (dois avisos de depreciação Django),
 Django check sem problemas, migrations sem divergências e build TypeScript/Vite
 aprovado. A mudança adiciona quatro migrations pequenas e não exige dependências.
+As seis regressões Playwright existentes também passaram em desktop e celular, num
+Compose separado nas portas 38000/35173 (as portas padrão de aceitação estavam
+ocupadas por outro stack, preservado). O smoke CLI do piloto real é evidência
+adicional; as fixtures desses seis testes continuam fictícias.
+
+## Revisão da implementação
+
+Base: `77ebb557c7f3e4209f654d68d73aa764f92a6137`; implementação inicial: `ef12090`.
+Revisão independente segundo `mattpocock-skills:code-review`:
+
+- **Standards:** um achado P2, releitura ausente do cache depois de adquirir o
+  bloqueio. Dois workers poderiam baixar a mesma página se outro concluísse entre
+  a leitura inicial e a aquisição. Corrigido com releitura sob o bloqueio e teste
+  determinístico dessa intercalação, que falhou antes e passou após a correção.
+  O bloqueio dura 60 s, além do limite hard de 45 s da task.
+- **Spec:** nenhum achado dentro do escopo experimental limitado, sem declarar
+  atendidos os critérios externos ainda pendentes de #7/#8.
 
 Permanecem pendentes: escopo de publicação aberta, retenção/histórico autorizados,
 contrato de remoção e snapshot completo, cobertura de vários mercados aprovada e
