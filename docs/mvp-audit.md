@@ -71,8 +71,9 @@ A tabela acima preserva a baseline anterior. Nesta implementação:
 - #6: ordenação mobile, demonstração por Fonte, contratos OpenAPI, versões exatas,
   lockfile e `npm ci`; `.dockerignore` exclui dependências do host.
 
-Validação: 66 testes backend, Django check e migrations sem divergências; build
-TypeScript/Vite 8.3.5; quatro testes Playwright (desktop/mobile) de jornada e estados.
+Validação: 68 testes backend, Django check e migrations sem divergências; build
+TypeScript/Vite 8.3.5; seis testes Playwright (desktop/mobile) de jornada, estados
+e larguras 320/768/1024/1440. Revisões e correções em `implementation-review.md`.
 O bootstrap isolado utiliza volumes próprios, sem excluir os volumes existentes.
 A prova Beat → Redis → worker sem eager registrou duas capturas idempotentes,
 mudança de preço e snapshot completo vazio que inativou uma oferta. Os comandos

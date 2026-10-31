@@ -55,8 +55,8 @@ para comparar fontes. O proxy do Vite usa o backend do Docker Compose.
 
 Domínio e ingestão (Sprints 1–4), deduplicação conservadora (Sprint 5), API
 (Sprint 6) e busca/comparação no frontend (Sprint 7) possuem implementação e testes,
-com correções dos tickets #2–#6. A validação de 2026-10-31 passou com 66 testes
-backend, build TypeScript/Vite e quatro testes de navegador (desktop e celular).
+com correções dos tickets #2–#6. A validação de 2026-10-31 passou com 68 testes
+backend, build TypeScript/Vite e seis testes de navegador (desktop e celular).
 O Compose isolado demonstrou Beat → Redis → worker, repetição, mudança de preço
 e inativação após inventário completo vazio, usando somente dados fictícios.
 Consulte [a auditoria do MVP](docs/mvp-audit.md) para a baseline anterior e as
@@ -205,3 +205,5 @@ parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 Continuam pendentes as autorizações #7/#9, integrações reais #8/#10, decisões de
 métricas #11, implementações #12/#13 e aceite real integrado #14. Não há alegação
 de MVP integralmente concluído nem alteração da spec pai #1.
+As duas revisões independentes e suas correções estão em
+[`docs/implementation-review.md`](docs/implementation-review.md).
