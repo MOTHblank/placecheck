@@ -74,6 +74,12 @@ com portais reais depende de feeds autorizados; o dataset local é inteiramente 
 - Cada ingestão reavalia a associação. Para reavaliar o inventário existente:
   `docker compose exec backend python manage.py reevaluate_matches`.
   Properties sem ofertas ficam fora da busca; seus IDs são preservados para auditoria.
+- Inativar outra oferta não troca o ID do imóvel durante a reingestão da oferta
+  restante. Ofertas inativas não obrigam a criação de outro Property.
+- Associações e separações bloqueiam os Properties envolvidos em ordem de ID e
+  revalidam os membros ativos antes de decidir. Ingestões concorrentes só compartilham
+  um grupo quando todas as ofertas são compatíveis. Os bloqueios permitem referências
+  de auditoria sem impedir atualizações concorrentes de anúncios do mesmo grupo.
 - A projeção do Property usa valores mais frequentes entre anúncios ativos. Empates
   favorecem o anúncio mais recente com valor informado. Coordenadas são escolhidas
   como par; valores ausentes não substituem informações conhecidas. Inativar uma

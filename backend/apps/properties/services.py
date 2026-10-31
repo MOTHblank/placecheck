@@ -9,7 +9,7 @@ def refresh_property(property_id):
 
     Coordinates are selected as a pair. Zero counts are valid values.
     """
-    property_ = Property.objects.select_for_update().get(pk=property_id)
+    property_ = Property.objects.select_for_update(no_key=True).get(pk=property_id)
     listings = list(property_.listings.filter(is_active=True).order_by("-last_seen_at", "-id"))
     if not listings:
         return property_

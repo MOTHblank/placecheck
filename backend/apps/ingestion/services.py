@@ -35,16 +35,21 @@ def persist_listing(source, listing: NormalizedListing) -> Listing:
         "url": listing.url,
         "is_active": True,
     }
-    existing = Listing.objects.select_for_update().filter(
+    existing = Listing.objects.select_for_update(no_key=True).filter(
         source=source,
         external_id=listing.source_external_id,
     ).first()
     previous_price = existing.price if existing else None
-    persisted, created = Listing.objects.update_or_create(
-        source=source,
-        external_id=listing.source_external_id,
-        defaults=values,
-    )
+    # The source lock also protects absent rows. Keep NO KEY UPDATE for existing
+    # offers so concurrent match audits may reference them without deadlocking.
+    created = existing is None
+    if created:
+        persisted = Listing.objects.create(source=source, external_id=listing.source_external_id, **values)
+    else:
+        persisted = existing
+        for field, value in values.items():
+            setattr(persisted, field, value)
+        persisted.save(update_fields=[*values, "last_seen_at", "updated_at"])
     if persisted.price is not None and (created or previous_price != persisted.price):
         ListingPriceHistory.objects.create(listing=persisted, price=persisted.price)
     match_listing_to_property(persisted)

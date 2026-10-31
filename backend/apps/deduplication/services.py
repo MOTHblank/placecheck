@@ -89,15 +89,20 @@ def _property_from_listing(listing):
 
 @transaction.atomic
 def match_listing_to_property(listing):
-    Listing.objects.select_for_update().get(pk=listing.pk)
+    Listing.objects.select_for_update(no_key=True).get(pk=listing.pk)
     listing.refresh_from_db()
     previous_id = listing.property_id
-    candidates = list(select_candidates(listing))
+    group_ids = set(select_candidates(listing).values_list("property_id", flat=True))
+    if previous_id:
+        group_ids.add(previous_id)
+    # Serialize membership decisions, including departures, before reading members.
+    # NO KEY UPDATE permits foreign-key references from other ingestions.
+    list(Property.objects.select_for_update(no_key=True).filter(pk__in=group_ids).order_by("pk").values_list("pk", flat=True))
+    candidates = list(select_candidates(listing).filter(property_id__in=group_ids))
     ranked = sorted(((candidate, calculate_similarity(listing, candidate)) for candidate in candidates), key=lambda pair: (pair[1].automatic, pair[1].score), reverse=True)
     best, result = ranked[0] if ranked else (None, SimilarityResult(0, ("no-candidate",)))
     # Every active member must agree: a bridge cannot join incompatible units.
     automatic_groups = {}
-    group_ids = {candidate.property_id for candidate in candidates}
     for member in Listing.objects.filter(is_active=True, property_id__in=group_ids).exclude(pk=listing.pk):
         automatic_groups.setdefault(member.property_id, []).append(calculate_similarity(listing, member).automatic)
     valid_groups = {key for key, values in automatic_groups.items() if all(values)}
