@@ -54,8 +54,14 @@ para comparar fontes. O proxy do Vite usa o backend do Docker Compose.
 ## Estado atual
 
 Domínio e ingestão (Sprints 1–4), deduplicação conservadora (Sprint 5), API
-(Sprint 6) e busca/comparação no frontend (Sprint 7) implementados. A integração
-com portais reais depende de feeds autorizados; o dataset local é inteiramente fictício.
+(Sprint 6) e busca/comparação no frontend (Sprint 7) possuem implementação e testes,
+mas ainda há lacunas de aceite e operação com dados reais. A auditoria de
+2026-10-31 registrou 43 testes backend aprovados e build frontend aprovado;
+sincronização assíncrona real e fluxo até anúncio real ainda precisam de validação.
+Consulte [a auditoria do MVP](docs/mvp-audit.md) para os defeitos de normalização,
+permissões e reconciliação e as decisões em andamento. A integração com fontes reais
+depende de autorização; o dataset local é inteiramente fictício. Sprint 8 tem
+registro de redirects, mas as demais métricas ainda não foram implementadas.
 
 ### Correção dos dados
 
