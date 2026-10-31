@@ -24,4 +24,4 @@ Possíveis sources:
 
 ## Estado atual
 
-Sprint 2 (Provider framework) concluída. O contrato de providers, normalização, `ManualProvider` e pipeline de persistência estão disponíveis. Celery, agendamento, retries e fontes externas serão implementados nas próximas sprints.
+Sprint 5 (Deduplicação) implementada e validada. O sistema seleciona candidatos, calcula similaridade explicável, aplica threshold e associa anúncios equivalentes ao mesmo `Property`.

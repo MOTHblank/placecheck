@@ -8,7 +8,9 @@ class ListingFactory:
     @staticmethod
     def create(**kwargs):
         source = kwargs.pop("source", None) or SourceFactory.create()
-        property_ = kwargs.pop("property", None) or PropertyFactory.create()
+        property_ = kwargs.pop("property", ...)
+        if property_ is ...:
+            property_ = PropertyFactory.create()
         values = {
             "source": source,
             "property": property_,
@@ -17,6 +19,10 @@ class ListingFactory:
             "transaction_type": Listing.TransactionType.SALE,
             "property_type": "apartment",
             "price": "650000.00",
+            "area": "80.00",
+            "bedrooms": 2,
+            "bathrooms": 2,
+            "parking_spaces": 1,
             "city": "São Paulo",
             "state": "SP",
             "neighborhood": "Pinheiros",
