@@ -1,5 +1,6 @@
 import re
 from decimal import Decimal, InvalidOperation
+from datetime import date
 
 from apps.sources.schemas import NormalizedListing, RawListing
 
@@ -73,4 +74,7 @@ def normalize_listing(raw: RawListing) -> NormalizedListing:
         latitude=_coordinate(raw.latitude),
         longitude=_coordinate(raw.longitude),
         url=raw.url.strip(),
+        sale_method=raw.sale_method,
+        price_kind=raw.price_kind,
+        source_inventory_date=date.fromisoformat(raw.source_inventory_date) if raw.source_inventory_date else None,
     )

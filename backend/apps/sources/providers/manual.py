@@ -40,4 +40,7 @@ class ManualProvider(ListingProvider):
             latitude=payload.get("latitude"),
             longitude=payload.get("longitude"),
             url=payload["url"],
+            sale_method=payload.get("sale_method", ""),
+            price_kind=payload.get("price_kind", "asking"),
+            source_inventory_date=payload.get("source_inventory_date"),
         )

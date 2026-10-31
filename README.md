@@ -21,6 +21,27 @@ Possíveis sources:
 - Ideal Imóveis
 - Quarto Andar
 
+### Primeira Fonte real para teste interno (#7/#8)
+
+O [piloto Imóveis Leilão Brasil/CAIXA](docs/ilb-pilot.md) permite buscar uma amostra
+real limitada por UF/cidade em um Compose isolado. Ele usa a API pública com
+atribuição, cache diário e Celery, distinguindo valor mínimo de preço de venda.
+Não há coleta nacional automática; descrição, imagens e histórico ficam desligados,
+e capturas parciais não inativam ausências. O aceite completo de #7/#8 segue pendente.
+
+```bash
+docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml up -d --build --wait
+docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml exec -T backend python manage.py setup_ilb_pilot
+```
+
+Após o próximo ciclo do Beat (até 15 minutos), abra http://127.0.0.1:25173.
+O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
+nacional, e o recorte pode ser configurado conforme a documentação do piloto.
+As portas são locais e os volumes ficam separados dos dados de desenvolvimento.
+Validação da integração: 100 testes backend, Django check/migrations, build
+TypeScript/Vite e smoke do piloto em desktop/celular; captura real agendada e 302
+para a ficha CAIXA observados. Isso não substitui o aceite real completo de #8.
+
 ### Estudo de entrada VRSync (#15)
 
 A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta

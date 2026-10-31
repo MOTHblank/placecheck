@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatPrice, getProperty, PropertyDetail, propertyLabels, TransactionType } from "./api";
+import { formatPrice, getProperty, PropertyDetail, propertyLabels, saleMethodLabels, TransactionType } from "./api";
 
 export function OfferDialog({ id, params, transaction, onClose }: { id: number; params: string; transaction: TransactionType; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -31,6 +31,9 @@ export function OfferDialog({ id, params, transaction, onClose }: { id: number; 
           <div className="offer-list">{property.listings.filter((offer) => offer.transaction_type === transaction).map((offer) => {
             const isDemo = offer.is_demo;
             return <article className="offer-item" key={offer.id}><h3>{offer.source}</h3><strong>{formatPrice(offer.price, transaction)}</strong><p>{offer.description}</p>
+              {offer.sale_method && <p>{saleMethodLabels[offer.sale_method] || offer.sale_method} · {offer.price_kind === "minimum" ? "Lance/valor mínimo" : offer.price_kind === "reference" ? "Valor informado a confirmar no edital" : "Preço informado"}</p>}
+              {offer.attribution_text && <p>{offer.attribution_text} {offer.source_url && <a href={offer.source_url} target="_blank" rel="noopener noreferrer">Fonte dos dados ↗</a>}</p>}
+              {offer.source_inventory_date && <p>Lista de origem: {offer.source_inventory_date.split("-").reverse().join("/")}. Captura com cache diário; confirme a disponibilidade no site oficial.</p>}
               <p>Condomínio: {formatPrice(offer.condominium_fee, "sale")} · IPTU: {formatPrice(offer.iptu, "sale")}</p>
               <p>{offer.days_on_market} dias em acompanhamento · {formatPrice(offer.price_per_m2, "sale")}/m²</p>
               {offer.previous_price !== null && <p>Preço anterior: {formatPrice(offer.previous_price, transaction)} · Menor registrado: {formatPrice(offer.lowest_price, transaction)}</p>}

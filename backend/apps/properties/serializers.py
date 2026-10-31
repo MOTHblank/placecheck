@@ -12,6 +12,8 @@ class PriceHistorySerializer(serializers.Serializer):
 
 
 class ListingOfferSerializer(serializers.ModelSerializer):
+    source_url = serializers.URLField(source="source.base_url", read_only=True)
+    attribution_text = serializers.CharField(source="source.attribution_text", read_only=True)
     is_demo = serializers.BooleanField(source="source.is_demo", read_only=True)
     source = serializers.CharField(source="source.name", read_only=True)
     previous_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
@@ -31,6 +33,7 @@ class ListingOfferSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "source",
+            "source_url", "attribution_text", "sale_method", "price_kind", "source_inventory_date",
             "is_demo",
             "title",
             "description",
@@ -52,6 +55,7 @@ class ListingOfferSerializer(serializers.ModelSerializer):
 
 
 class PropertyListSerializer(serializers.ModelSerializer):
+    has_special_sale = serializers.BooleanField(read_only=True)
     has_demo_offers = serializers.BooleanField(read_only=True)
     listing_count = serializers.IntegerField(read_only=True)
     min_price = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True, allow_null=True)
@@ -73,6 +77,7 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "parking_spaces",
             "listing_count",
             "has_demo_offers",
+            "has_special_sale",
             "min_price",
             "price_per_m2", "price_drop_percent",
         )

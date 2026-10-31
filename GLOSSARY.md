@@ -53,3 +53,9 @@ O conjunto atual de Anúncios ativos de Fontes publicadas e não demonstrativas,
 **Redução por agrupamento**:
 A proporção de Anúncios do Estoque publicável que excede a quantidade de Imóveis distintos representados. Mede compressão de estoque, sem comprovar acurácia das associações.
 _Evitar_: acurácia da deduplicação como sinônimo de redução por agrupamento.
+
+**Modalidade de venda**:
+A forma de oferta de um Anúncio de venda, como leilão, licitação ou venda direta. É distinta da escolha entre venda e aluguel.
+
+**Valor mínimo**:
+O menor valor informado para participar de uma oferta sujeita a suas condições, como lance mínimo de leilão. Não representa necessariamente o preço final de aquisição.

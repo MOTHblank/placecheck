@@ -13,6 +13,8 @@ class Source(models.Model):
     slug = models.SlugField(max_length=150, unique=True)
     provider_type = models.CharField(max_length=20, choices=ProviderType.choices)
     base_url = models.URLField(blank=True)
+    attribution_text = models.CharField(max_length=200, blank=True)
+    collection_scope = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_published = models.BooleanField(default=True, help_text="Retirar publicação oculta ofertas, detalhes e redirects; pausar coleta usa is_active.")
     is_demo = models.BooleanField(default=False)

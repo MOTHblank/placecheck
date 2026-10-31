@@ -4,10 +4,18 @@ import json
 from pathlib import Path
 
 from .manual import ManualProvider
+from .imoveis_leilao_brasil import SOURCE_SLUG, ImoveisLeilaoBrasilProvider
 
 
 def build_provider(source):
     """Resolve o provider de uma fonte sem acoplar tarefas ao provider concreto."""
+    if source.slug == SOURCE_SLUG:
+        if not settings.DEBUG or not settings.ILB_PILOT_ENABLED or source.provider_type != source.ProviderType.API:
+            raise ImproperlyConfigured("Piloto ILB disponível somente no ambiente interno explicitamente habilitado.")
+        if source.collection_scope != f"{settings.ILB_PILOT_UF.upper()}:{settings.ILB_PILOT_CITY}":
+            raise ImproperlyConfigured("Recorte ILB mudou; use outro stack isolado para o novo recorte.")
+        return ImoveisLeilaoBrasilProvider(uf=settings.ILB_PILOT_UF, city=settings.ILB_PILOT_CITY,
+                                          limit=settings.ILB_PILOT_LIMIT)
     if source.provider_type == source.ProviderType.MANUAL:
         records_by_source = getattr(settings, "MANUAL_PROVIDER_RECORDS", {})
         records_file = getattr(settings, "MANUAL_PROVIDER_RECORDS_FILE", "")

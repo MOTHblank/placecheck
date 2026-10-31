@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class IngestionTask(Task):
+    # Payloads are intermediate processing data, not a parallel price history in logs.
+    resultrepr_maxsize = 0
+
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         run_id = kwargs.get("run_id")
         if run_id is None:

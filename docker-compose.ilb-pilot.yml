@@ -1,0 +1,34 @@
+# Use only with -p placecheck-ilb-pilot; separate volumes and loopback ports.
+services:
+  backend:
+    ports: !override
+      - "127.0.0.1:28000:8000"
+    environment:
+      ILB_PILOT_ENABLED: "1"
+      ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
+      ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
+      ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  celery:
+    command: celery -A config worker --loglevel=info --concurrency=2
+    environment:
+      ILB_PILOT_ENABLED: "1"
+      ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
+      ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
+      ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}
+  celery-beat:
+    command: celery -A config beat --loglevel=info --schedule=/tmp/ilb-pilot-celerybeat
+    environment:
+      CELERY_SYNC_INTERVAL_SECONDS: ${ILB_PILOT_SYNC_SECONDS:-900}
+  frontend:
+    ports: !override
+      - "127.0.0.1:25173:5173"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 3s
+      timeout: 3s
+      retries: 30

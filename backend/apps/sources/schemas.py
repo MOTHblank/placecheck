@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from datetime import date
 
 
 @dataclass(frozen=True)
@@ -23,6 +24,9 @@ class RawListing:
     latitude: object | None
     longitude: object | None
     url: str
+    sale_method: str = ""
+    price_kind: str = "asking"
+    source_inventory_date: str | None = None
 
 
 @dataclass(frozen=True)
@@ -46,3 +50,6 @@ class NormalizedListing:
     latitude: Decimal | None
     longitude: Decimal | None
     url: str
+    sale_method: str = ""
+    price_kind: str = "asking"
+    source_inventory_date: date | None = None

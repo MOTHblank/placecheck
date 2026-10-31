@@ -11,6 +11,7 @@ export type Property = {
   min_price: string | null;
   listing_count: number;
   has_demo_offers: boolean;
+  has_special_sale: boolean;
   price_per_m2: string | null;
   price_drop_percent: number | null;
 };
@@ -18,6 +19,11 @@ export type Offer = {
   is_demo: boolean;
   id: number;
   source: string;
+  source_url: string;
+  attribution_text: string;
+  sale_method: string;
+  price_kind: "asking" | "minimum" | "reference";
+  source_inventory_date: string | null;
   title: string;
   description: string;
   transaction_type: TransactionType;
@@ -51,6 +57,10 @@ export function getProperty(id: number, params: string, signal: AbortSignal): Pr
 
 export const propertyLabels: Record<string, string> = {
   apartment: "Apartamento", house: "Casa", land: "Terreno", commercial: "Comercial", other: "Outro",
+};
+export const saleMethodLabels: Record<string, string> = {
+  "leilao-sfi": "Leilão SFI", "licitacao-aberta": "Licitação aberta",
+  "venda-direta-online": "Venda direta online", "venda-online": "Venda online",
 };
 export const formatPrice = (price: string | number | null, transaction: TransactionType) => price === null
   ? "Preço sob consulta"

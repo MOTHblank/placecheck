@@ -5,6 +5,11 @@ from apps.sources.models import Source
 
 
 class Listing(models.Model):
+    class PriceKind(models.TextChoices):
+        ASKING = "asking", "Preço pedido"
+        MINIMUM = "minimum", "Valor mínimo"
+        REFERENCE = "reference", "Valor informado a confirmar"
+
     class TransactionType(models.TextChoices):
         SALE = "sale", "Venda"
         RENT = "rent", "Aluguel"
@@ -23,6 +28,9 @@ class Listing(models.Model):
     transaction_type = models.CharField(max_length=20, choices=TransactionType.choices)
     property_type = models.CharField(max_length=30)
     price = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    sale_method = models.CharField(max_length=30, blank=True)
+    price_kind = models.CharField(max_length=12, choices=PriceKind.choices, default=PriceKind.ASKING)
+    source_inventory_date = models.DateField(null=True, blank=True)
     condominium_fee = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     iptu = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     area = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

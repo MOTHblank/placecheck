@@ -41,6 +41,7 @@ def property_search(params, include_offers=False):
         price_drop_percent=Subquery(summary.values("drop")[:1]),
         last_seen=Subquery(summary.values("seen")[:1]),
         has_demo_offers=Exists(grouped.filter(source__is_demo=True)),
+        has_special_sale=Exists(grouped.exclude(sale_method="")),
     ).order_by(ordering_expression(params.get("ordering", "-updated_at")), "id")
     if include_offers:
         queryset = queryset.prefetch_related(Prefetch("listings", queryset=offers.order_by(F("price").asc(nulls_last=True), "id").prefetch_related("price_history"), to_attr="matching_listings"))
