@@ -75,6 +75,10 @@ decisões pendentes. A integração com fontes reais
 depende de autorização; o dataset local é inteiramente fictício. Sprint 8 tem
 registro de redirects, mas as demais métricas ainda não foram implementadas.
 
+O [contrato proposto das métricas](docs/metrics-contract.md) detalha as decisões
+pendentes do #11 para liberar #12/#13. É um rascunho para aprovação, sem mudança
+na instrumentação ou nas regras atuais de retenção.
+
 ### Correção dos dados
 
 - A persistência é atômica, incluindo atualização, histórico e associação. A fonte
