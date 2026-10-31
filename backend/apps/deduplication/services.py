@@ -107,7 +107,7 @@ def match_listing_to_property(listing):
         assigned = best.property
         outcome = "automatic"
     else:
-        peers = Listing.objects.filter(property_id=previous_id).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
+        peers = Listing.objects.filter(property_id=previous_id, is_active=True).exclude(pk=listing.pk) if previous_id else Listing.objects.none()
         assigned = listing.property if previous_id and not peers.exists() else _property_from_listing(listing)
         outcome = "possible" if result.score >= 0.5 else "separate"
     Listing.objects.filter(pk=listing.pk).update(property=assigned)

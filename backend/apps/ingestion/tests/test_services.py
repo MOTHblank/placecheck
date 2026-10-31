@@ -4,9 +4,10 @@ from dataclasses import replace
 from unittest.mock import patch
 
 from apps.ingestion.services import ingest_provider
-from apps.ingestion.services import persist_listing
+from apps.ingestion.services import persist_listing, reconcile_source_listings
 from apps.sources.normalizers import normalize_listing
 from apps.listings.models import Listing, ListingPriceHistory
+from apps.properties.models import Property
 from apps.sources.providers import ManualProvider
 from apps.sources.tests.factories import SourceFactory
 from apps.sources.tests.test_provider import sample_record
@@ -94,3 +95,29 @@ def test_missing_listings_are_deactivated_during_reconciliation():
 
     assert Listing.objects.get(source=source, external_id="manual-001").is_active is True
     assert Listing.objects.get(source=source, external_id="manual-002").is_active is False
+
+
+@pytest.mark.django_db
+def test_unchanged_listing_keeps_property_when_other_offer_becomes_inactive():
+    first_source = SourceFactory.create()
+    second_source = SourceFactory.create()
+    record = sample_record()
+    record["title"] = "Apartamento em Pinheiros unidade 401"
+    normalized = normalize_listing(ManualProvider({}).parse(record))
+    first = persist_listing(first_source, normalized)
+    second = persist_listing(second_source, normalized)
+    original_property_id = first.property_id
+    assert second.property_id == original_property_id
+
+    reconcile_source_listings(second_source, [])
+    for _ in range(2):
+        unchanged = persist_listing(first_source, normalized)
+        assert unchanged.property_id == original_property_id
+
+    assert Property.objects.count() == 1
+    assert unchanged.price_history.count() == 1
+    assert unchanged.match_decisions.latest("id").assigned_property_id == original_property_id
+    reactivated = persist_listing(second_source, normalized)
+    assert reactivated.is_active
+    assert reactivated.property_id == original_property_id
+    assert Property.objects.count() == 1
