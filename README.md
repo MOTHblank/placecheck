@@ -75,9 +75,9 @@ decisões pendentes. A integração com fontes reais
 depende de autorização; o dataset local é inteiramente fictício. Sprint 8 tem
 registro de redirects, mas as demais métricas ainda não foram implementadas.
 
-O [contrato proposto das métricas](docs/metrics-contract.md) detalha as decisões
-pendentes do #11 para liberar #12/#13. É um rascunho para aprovação, sem mudança
-na instrumentação ou nas regras atuais de retenção.
+O [contrato das métricas](docs/metrics-contract.md), aprovado em 2026-10-31 no #11,
+define contagem, CTR, atribuição, exclusões, retenção e testes para #12/#13.
+A instrumentação e a limpeza aprovadas ainda precisam ser implementadas.
 
 ### Correção dos dados
 
@@ -217,8 +217,8 @@ do redirect para evitar contato externo. Screenshots/traces ficam em
 http://localhost:15173/api/properties/. Use `down` com os mesmos argumentos para
 parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 
-Continuam pendentes as autorizações #7/#9, integrações reais #8/#10, decisões de
-métricas #11, implementações #12/#13 e aceite real integrado #14. Não há alegação
+Continuam pendentes as autorizações #7/#9, integrações reais #8/#10,
+implementações de métricas #12/#13 e aceite real integrado #14. Não há alegação
 de MVP integralmente concluído nem alteração da spec pai #1.
 As duas revisões independentes e suas correções estão em
 [`docs/implementation-review.md`](docs/implementation-review.md).

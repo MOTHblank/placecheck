@@ -1,7 +1,8 @@
-# Contrato proposto das métricas — #11
+# Contrato das métricas — #11
 
-**Estado: proposta para decisão do responsável pelo produto; não aprovado.**
-Preparado em 31/10/2026 para [#11](https://github.com/MOTHblank/placecheck/issues/11).
+**Estado: aprovado pelo responsável pelo produto em 31/10/2026.**
+Aprovação explícita neste chat: “Aprovar o contrato e os testes propostos”.
+Preparado para [#11](https://github.com/MOTHblank/placecheck/issues/11).
 Os tickets [#12](https://github.com/MOTHblank/placecheck/issues/12) e
 [#13](https://github.com/MOTHblank/placecheck/issues/13) dependem desse contrato.
 Não altera a spec pai #1, autoriza coleta ou comprova cobertura real.
@@ -11,7 +12,7 @@ Não altera a spec pai #1, autoriza coleta ou comprova cobertura real.
 Medir descoberta e saída para ofertas, atualização e agrupamento. Contato,
 negociação e venda ocorrem na Fonte e não são inferidos dos eventos.
 
-| Medida | Unidade proposta |
+| Medida | Unidade de contagem |
 | --- | --- |
 | Busca | Uma execução explícita de filtros válidos que recebeu resultados com sucesso, inclusive resultado vazio. Novo envio, mesmo com filtros iguais, conta novamente. Abrir diretamente uma URL com filtros conta uma vez; carregamento inicial sem filtros não conta. Paginação, ordenação, Voltar/Avançar, rerender e retry da mesma execução não geram busca adicional. |
 | Visualização de Imóvel | Uma abertura de detalhe carregada com sucesso. Fechar e reabrir ou recarregar a página conta nova abertura. Retry ou rerender da mesma abertura não conta novamente. Alterar filtros enquanto o detalhe está aberto cria novo contexto somente após carregar o novo detalhe com sucesso. |
@@ -39,7 +40,7 @@ por igualdade de IP, referer ou pela última exposição de outra aba. Saída se
 identidade, inválida ou incompatível fica somente no bruto; não escolher outra
 exposição por aproximação.
 
-A janela proposta é **[exposição, exposição + 30 minutos)**. Um clique exatamente
+A janela é **[exposição, exposição + 30 minutos)**. Um clique exatamente
 aos 30 minutos fica fora. A oferta precisa continuar elegível na saída.
 
 **CTR = exposições com ao menos uma saída atribuída / exposições elegíveis × 100.**
@@ -75,8 +76,14 @@ e mercado. Fonte inválida ou parâmetros inconsistentes são erro explícito.
 Buscas e visualizações são medidas da jornada, sem Fonte única. Com filtro de
 Fonte, esses totais aparecem como **não se aplica**, sem atribuí-los arbitrariamente
 a todas as Fontes do resultado. Filtro de mercado aplica-se às medidas com mercado
-conhecido; buscas amplas sem mercado completo aparecem num total separado, sem
-distribuição inventada. Exposições e saídas permitem filtro de Fonte/mercado.
+conhecido; buscas e visualizações sem mercado completo aparecem num total separado,
+sem distribuição inventada. Uma visualização usa cidade/UF do Imóvel e a modalidade
+explícita do contexto aberto. Se não houver modalidade única, fica sem mercado
+atribuído, mesmo que o detalhe retorne venda e aluguel; não conta em ambos.
+Exemplo: abrir um Imóvel de Salvador/BA no contexto de aluguel soma uma visualização
+somente em Salvador/BA/rent; abri-lo sem modalidade soma somente ao total separado
+sem mercado completo. Exposições e saídas permitem filtro de Fonte/mercado e usam
+a modalidade da própria oferta.
 
 Cobertura: relatar somente mercados presentes no inventário autorizado. A proposta
 de pelo menos duas combinações cidade/modalidade permanece condicionada ao acordo
@@ -88,7 +95,7 @@ Estoque é medido **no instante da consulta**, separado dos eventos do período.
 Publicação exige Fonte publicada e não demonstrativa; pausa de coleta não retira
 publicação. Aplicar Fonte/mercado antes das contagens, na mesma população de ofertas.
 
-| Contagem | Regra proposta |
+| Contagem | Regra |
 | --- | --- |
 | Fontes publicáveis | Fontes publicadas não demo, mesmo sem estoque; com filtro de mercado, somente as que têm oferta ativa nesse mercado. |
 | Anúncios ativos publicáveis (L) | Anúncios ativos dessas Fontes, dentro do mercado selecionado quando houver. |
@@ -115,7 +122,7 @@ sem contaminar o relatório real. Classificação de tráfego interno deve vir d
 configuração controlada pela equipe; não confiar em um sinal arbitrário do cliente
 para classificar tráfego como real. Detecção de bots é limitada, sem fingerprint.
 
-Proposta: **90 dias de retenção dos eventos individuais**, a partir da aceitação.
+São **90 dias de retenção dos eventos individuais**, a partir da aceitação.
 Sem IP, referer completo, user agent persistido, texto livre de busca, contato ou
 identificador pessoal. Classificar automação em memória e descartar os cabeçalhos.
 Guardar somente identidades opacas, tipo/horário e referências mínimas necessárias
@@ -133,13 +140,13 @@ anteriores à janela disponível e informa o início da instrumentação; não a
 ausência de coleta ou dados expirados como zero observado. Backups e logs não podem
 ser usados como uma segunda base de eventos fora da política acordada.
 
-## Implementação, testes e decisão pendente
+## Implementação e testes
 
 Reutilizar analytics, API, frontend e Celery existentes; não criar plataforma de
 analytics. O código atual só registra RedirectEvent com sessão/referer/user agent,
 FK de Listing em cascade e sem atribuição. Não satisfaz este contrato.
 
-Interfaces propostas para testes em #12/#13:
+Interfaces aprovadas para testes em #12/#13:
 
 - Navegador → API → PostgreSQL → redirect: comprova exposição efetiva, sequência
   determinística, CTR, retransmissão e mobile; não comprova atenção humana ou feed real.
@@ -149,7 +156,8 @@ Interfaces propostas para testes em #12/#13:
   aritmética, filtros, estoque, retirada, retenção e estado operacional; não comprovam
   acurácia da deduplicação em inventário real.
 
-Essas interfaces e regras **aguardam confirmação**. Após a decisão, registrar o
-contrato no #11 e os termos resolvidos no GLOSSARY, antes de implementar #12/#13.
-Não há mudança de comportamento, nova coleta de eventos ou alegação de aceite neste
-rascunho. Autorização de Fontes e cobertura real continuam pendentes em #7/#9.
+Essas interfaces e regras foram confirmadas para implementar #12/#13. Os termos
+resolvidos estão no GLOSSARY; a decisão deve ser vinculada ao #11. Esta entrega
+documenta o contrato: não implementa instrumentação ou limpeza e não satisfaz os
+aceites de #12/#13. Autorização de Fontes e cobertura real continuam pendentes
+em #7/#9. O aceite integrado #14 depende dessas implementações e evidências.
