@@ -21,7 +21,92 @@ Possíveis sources:
 - Ideal Imóveis
 - Quarto Andar
 
+## Banco fictício para testes
+
+Com os serviços em execução, carregue o dataset local:
+
+```bash
+docker compose exec backend python manage.py seed_demo
+```
+
+São 30 imóveis e 60 anúncios de três fontes fictícias, em Belo Horizonte,
+Salvador, São Paulo, Rio de Janeiro e Curitiba. Inclui venda e aluguel,
+apartamentos, casas, terrenos e salas comerciais, ofertas duplicadas,
+históricos de queda/aumento de preço, preço não informado e anúncios inativos.
+O comando utiliza o pipeline de normalização e deduplicação. Pode ser executado
+novamente: anúncios existentes (inclusive alterações manuais) são preservados.
+As fontes `demo-fonte-*` ficam fora da sincronização automática, e os links
+usam domínios `.example`, sem anúncios reais no destino.
+
+Exemplos para testar no navegador:
+
+- Lista paginada: http://localhost:8000/api/properties/
+- Salvador: http://localhost:8000/api/properties/?city=Salvador
+- Venda até R$ 700 mil: http://localhost:8000/api/properties/?transaction_type=sale&max_price=700000
+- Menor preço primeiro: http://localhost:8000/api/properties/?ordering=price
+- Comparar ofertas: abra `/api/properties/{id}/` com um ID retornado pela lista.
+
+O frontend em http://localhost:5173 consulta estes dados pela API: filtre por cidade,
+tipo, preço e quartos, alterne entre compra/aluguel e clique em “Ver ofertas”
+para comparar fontes. O proxy do Vite usa o backend do Docker Compose.
+
 
 ## Estado atual
 
-Sprint 5 (Deduplicação) implementada e validada. O sistema seleciona candidatos, calcula similaridade explicável, aplica threshold e associa anúncios equivalentes ao mesmo `Property`.
+Domínio e ingestão (Sprints 1–4), deduplicação conservadora (Sprint 5), API
+(Sprint 6) e busca/comparação no frontend (Sprint 7) implementados. A integração
+com portais reais depende de feeds autorizados; o dataset local é inteiramente fictício.
+
+### Correção dos dados
+
+- A persistência é atômica, incluindo atualização, histórico e associação. A fonte
+  é bloqueada durante a escrita para serializar inserções/atualizações concorrentes.
+- Uma associação automática exige coordenadas a até 25 m, área com diferença de
+  no máximo 2%, título com similaridade de pelo menos 90% e identificador explícito
+  `unidade`/`apto` igual. Cidade, estado, tipo e características conhecidas não podem
+  conflitar. Características genéricas ou coordenadas de um prédio não bastam.
+- `DEDUP_MAX_AUTO_DISTANCE_METERS` e `DEDUP_AUTO_THRESHOLD` podem ser definidos nas
+  configurações Django. O limiar padrão de score é 0,90, além das evidências obrigatórias.
+- Casos possíveis ficam separados. `MatchDecision` registra candidato, score,
+  razões e Property anterior/nova, consultáveis no admin. Grupos ambíguos não são
+  unidos automaticamente. Correções podem separar associações antigas; dados
+  melhores podem permitir associações antes impossíveis.
+- Cada ingestão reavalia a associação. Para reavaliar o inventário existente:
+  `docker compose exec backend python manage.py reevaluate_matches`.
+  Properties sem ofertas ficam fora da busca; seus IDs são preservados para auditoria.
+- A projeção do Property usa valores mais frequentes entre anúncios ativos. Empates
+  favorecem o anúncio mais recente com valor informado. Coordenadas são escolhidas
+  como par; valores ausentes não substituem informações conhecidas. Inativar uma
+  fonte pelo pipeline recalcula os imóveis afetados.
+
+### Busca e inteligência de preços
+
+Filtros de uma requisição devem ser satisfeitos pelo mesmo anúncio ativo.
+`min_price`, quantidade de ofertas e detalhes são calculados sobre essa população.
+Os filtros aceitos são `city`, `state`, `neighborhood`, `location`, `q`,
+`transaction_type`, `property_type`, `min_price`, `max_price`, `min_area`, `max_area`,
+`bedrooms`, `bathrooms` e `parking_spaces`. Valores numéricos inválidos e intervalos
+invertidos retornam HTTP 400.
+
+`ordering` aceita `price`, `-price`, `area`, `-area`, `price_per_m2`, `-price_per_m2`,
+`price_drop`, `-price_drop`, `city`, `-city`, `updated_at` e `-updated_at`.
+Datas representam a última captura dos anúncios correspondentes. Valores ausentes
+ficam no fim da ordenação. Paginação usa `limit`/`offset`.
+
+Detalhes expõem histórico, preço anterior, inicial, mínimo e máximo registrados,
+preço/m², dias desde a primeira captura e percentual de queda desde o preço inicial
+(zero em caso de aumento). Sem histórico/preço/área suficientes, métricas ficam nulas.
+O frontend conserva filtros, ordenação, página e imóvel aberto na URL, com suporte
+à atualização da página e aos botões Voltar/Avançar. Links reais passam por `/out/{id}/`;
+fontes fictícias são identificadas e não apontam para ofertas reais.
+
+`Source.rate_limit_per_minute` configura o limite por fonte (padrão 60, mínimo 1).
+O limite usa uma janela de 60 segundos no cache compartilhado. O schema JSON está em
+`/api/schema/`. O arquivo gerado `celerybeat-schedule*` é ignorado pelo Git.
+
+### Verificação
+
+```bash
+docker compose exec backend pytest -q
+docker compose exec frontend npm run build
+```

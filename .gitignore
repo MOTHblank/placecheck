@@ -21,3 +21,7 @@ media/
 # Local development data
 postgres_data/
 redis_data/
+celerybeat-schedule*
+.playwright-cli/
+output/playwright/
+output/backups/
