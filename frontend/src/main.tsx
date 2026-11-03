@@ -4,7 +4,7 @@ import { getProperties, PropertyPage } from "./api";
 import { OfferDialog } from "./OfferDialog";
 import { SearchForm } from "./SearchForm";
 import { SearchResults } from "./SearchResults";
-import { initialFilters, offerParams, readSearchState, resultParams, SearchFilters, SearchState, searchUrl } from "./search";
+import { filterParamNames, initialFilters, offerParams, readSearchState, resultParams, SearchFilters, SearchState, searchUrl } from "./search";
 import "./styles.css";
 import { deliverMetric } from "./analytics";
 
@@ -18,7 +18,7 @@ function App() {
   const query = resultParams(search).toString();
   const detailQuery = offerParams(search.filters).toString();
   const [submission, setSubmission] = useState(0);
-  const hasDirectFilters = ["q", "location", "transaction_type", "property_type", "min_price", "max_price", "bedrooms"].some((key) => new URLSearchParams(window.location.search).has(key));
+  const hasDirectFilters = filterParamNames.some((key) => new URLSearchParams(window.location.search).has(key));
   const pendingSearch = useRef<{ id: string; query: string } | null>(hasDirectFilters ? { id: crypto.randomUUID(), query } : null);
 
   useEffect(() => {

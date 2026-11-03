@@ -28,7 +28,7 @@ export function OfferItem({ offer, transaction, context }: { offer: Offer; trans
   }, [context, offer.id, offer.is_demo]);
 
   const out = `/out/${offer.id}/${redirectToken ? `?exposure=${encodeURIComponent(redirectToken)}` : ""}`;
-  return <article ref={article} className="offer-item"><h3>{offer.source}</h3><strong>{formatPrice(offer.price, transaction)}</strong><p>{offer.description}</p>
+  return <article id={`oferta-${offer.id}`} ref={article} className="offer-item"><h3>{offer.source}</h3><strong>{formatPrice(offer.price, transaction)}</strong><p>{offer.description}</p>
     {offer.sale_method && <p>{saleMethodLabels[offer.sale_method] || offer.sale_method} · {offer.price_kind === "minimum" ? "Lance/valor mínimo" : offer.price_kind === "reference" ? "Valor informado a confirmar no edital" : "Preço informado"}</p>}
     {offer.attribution_text && <p>{offer.attribution_text} {offer.source_url && <a href={offer.source_url} target="_blank" rel="noopener noreferrer">Fonte dos dados ↗</a>}</p>}
     {offer.source_inventory_date && <p>Lista de origem: {offer.source_inventory_date.split("-").reverse().join("/")}. Captura com cache diário; confirme a disponibilidade no site oficial.</p>}

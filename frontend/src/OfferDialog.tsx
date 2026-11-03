@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getProperty, PropertyDetail, propertyLabels, TransactionType } from "./api";
 import { deliverMetric } from "./analytics";
 import { OfferItem } from "./OfferItem";
+import { OfferComparison } from "./OfferComparison";
 
 export function OfferDialog({ id, params, transaction, onClose }: { id: number; params: string; transaction: TransactionType; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -38,6 +39,7 @@ export function OfferDialog({ id, params, transaction, onClose }: { id: number; 
     {error ? <div role="alert"><p>Não foi possível carregar as ofertas.</p><button className="card-link" onClick={() => setAttempt((value) => value + 1)}>Tentar novamente</button></div>
       : !property ? <p role="status">Carregando ofertas…</p>
         : <><p>{propertyLabels[property.property_type] || property.property_type} — {property.neighborhood}, {property.city}</p>
+          <OfferComparison offers={property.listings.filter((offer) => offer.transaction_type === transaction)} transaction={transaction} />
           <div className="offer-list">{property.listings.filter((offer) => offer.transaction_type === transaction).map((offer) =>
             <OfferItem key={offer.id} offer={offer} transaction={transaction} context={context} />)}</div>
         </>}

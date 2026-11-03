@@ -36,6 +36,8 @@ export type Offer = {
   lowest_price: string | null;
   price_drop_percent: number | null;
   price_per_m2: string | null;
+  area: string | null;
+  last_seen_at: string | null;
   days_on_market: number;
   price_history: { price: string; captured_at: string }[];
 };

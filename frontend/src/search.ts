@@ -1,10 +1,11 @@
 import { TransactionType } from "./api";
 
-export type SearchFilters = { query: string; location: string; transaction: TransactionType; minPrice: string; maxPrice: string; bedrooms: string; propertyType: string };
+export type SearchFilters = { query: string; location: string; city: string; state: string; neighborhood: string; transaction: TransactionType; minPrice: string; maxPrice: string; minArea: string; maxArea: string; bedrooms: string; bathrooms: string; parkingSpaces: string; propertyType: string };
 export type SearchState = { filters: SearchFilters; ordering: string; offset: number; propertyId: number | null };
 export const pageSize = 12;
-export const initialFilters: SearchFilters = { query: "", location: "", transaction: "sale", minPrice: "", maxPrice: "", bedrooms: "", propertyType: "" };
-const fields = { query: "q", location: "location", minPrice: "min_price", maxPrice: "max_price", bedrooms: "bedrooms", propertyType: "property_type" } as const;
+export const initialFilters: SearchFilters = { query: "", location: "", city: "", state: "", neighborhood: "", transaction: "sale", minPrice: "", maxPrice: "", minArea: "", maxArea: "", bedrooms: "", bathrooms: "", parkingSpaces: "", propertyType: "" };
+const fields = { query: "q", location: "location", city: "city", state: "state", neighborhood: "neighborhood", minPrice: "min_price", maxPrice: "max_price", minArea: "min_area", maxArea: "max_area", bedrooms: "bedrooms", bathrooms: "bathrooms", parkingSpaces: "parking_spaces", propertyType: "property_type" } as const;
+export const filterParamNames = ["transaction_type", ...Object.values(fields)];
 const orderings = ["-updated_at", "price", "-price", "-area", "price_per_m2", "-price_drop"];
 
 export function readSearchState(): SearchState {
