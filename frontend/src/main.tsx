@@ -4,6 +4,7 @@ import { getProperties, PropertyPage } from "./api";
 import { OfferDialog } from "./OfferDialog";
 import { SearchForm } from "./SearchForm";
 import { SearchResults } from "./SearchResults";
+import { SavedSearches } from "./SavedSearches";
 import { filterParamNames, initialFilters, offerParams, readSearchState, resultParams, SearchFilters, SearchState, searchUrl } from "./search";
 import "./styles.css";
 import { deliverMetric } from "./analytics";
@@ -59,6 +60,7 @@ function App() {
     <header className="site-header"><a className="brand" href="/" aria-label="Placecheck início"><span className="brand-mark">P</span><span>place<span>check</span></span></a><nav className="main-nav" aria-label="Navegação principal"><a className="active" href="#buscar">Buscar imóveis</a><a href="#como-funciona">Como funciona</a></nav></header>
     <main>
       <SearchForm filters={filters} updateFilter={updateFilter} onSubmit={() => navigate({ ...search, filters, offset: 0, propertyId: null }, true)} />
+      <SavedSearches activeSearch={search} onOpen={(saved) => navigate({ filters: saved.filters, ordering: saved.ordering, offset: 0, propertyId: null }, true)} />
       <SearchResults properties={data.results} count={data.count} offset={search.offset} transaction={search.filters.transaction} ordering={search.ordering} loading={loading} error={error}
         onOrder={(ordering) => navigate({ ...search, ordering, offset: 0 })}
         onPage={(offset) => navigate({ ...search, offset })}

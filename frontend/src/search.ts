@@ -6,7 +6,7 @@ export const pageSize = 12;
 export const initialFilters: SearchFilters = { query: "", location: "", city: "", state: "", neighborhood: "", transaction: "sale", minPrice: "", maxPrice: "", minArea: "", maxArea: "", bedrooms: "", bathrooms: "", parkingSpaces: "", propertyType: "" };
 const fields = { query: "q", location: "location", city: "city", state: "state", neighborhood: "neighborhood", minPrice: "min_price", maxPrice: "max_price", minArea: "min_area", maxArea: "max_area", bedrooms: "bedrooms", bathrooms: "bathrooms", parkingSpaces: "parking_spaces", propertyType: "property_type" } as const;
 export const filterParamNames = ["transaction_type", ...Object.values(fields)];
-const orderings = ["-updated_at", "price", "-price", "-area", "price_per_m2", "-price_drop"];
+export const orderings = ["-updated_at", "price", "-price", "-area", "price_per_m2", "-price_drop"];
 
 export function readSearchState(): SearchState {
   const params = new URLSearchParams(window.location.search);

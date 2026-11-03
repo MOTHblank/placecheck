@@ -261,3 +261,23 @@ aceite real integrado #14. Não há alegação
 de MVP integralmente concluído nem alteração da spec pai #1.
 As duas revisões independentes e suas correções estão em
 [`docs/implementation-review.md`](docs/implementation-review.md).
+
+
+## Busca avançada, comparação e buscas locais
+
+O formulário da página inicial inclui filtros avançados recolhíveis para cidade, UF, bairro,
+área mínima/máxima, banheiros e vagas, além dos filtros básicos. Os critérios são
+combinados no mesmo anúncio ativo; URLs de busca preservam os critérios durante a
+navegação, ordenação e paginação.
+
+O diálogo de ofertas apresenta tabelas comparativas por tipo de valor
+(preço anunciado, lance mínimo e valor de referência), com condomínio, IPTU, área,
+R$/m², data de verificação e mudanças de preço. Atribuição das fontes e saídas
+para os anúncios originais continuam disponíveis.
+
+Em **Buscas salvas**, o usuário pode salvar a busca aplicada com nome, renomear,
+reabrir, excluir e exportar/importar arquivo JSON no formato
+`{"version":1,"searches":[...]}`. O armazenamento usa somente `localStorage`
+do navegador (máximo de 20 buscas e 32 KB); importações são verificadas e
+não são enviadas para o servidor. Alterações e limpeza dos dados do navegador
+podem remover as buscas, portanto utilize a exportação para uma cópia.

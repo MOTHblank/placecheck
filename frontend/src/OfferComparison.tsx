@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { formatPrice, Offer, saleMethodLabels, TransactionType } from "./api";
 
 const kinds: { kind: Offer["price_kind"]; title: string; explanation: string }[] = [
