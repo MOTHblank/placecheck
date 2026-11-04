@@ -13,6 +13,8 @@ function money(value: string | null, transaction: TransactionType) {
 
 function date(value: string | null) {
   if (!value) return "Não informada";
+  // Inventory dates are calendar days, not UTC instants to shift into local time.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split("-").reverse().join("/");
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? "Não informada" : parsed.toLocaleDateString("pt-BR");
 }

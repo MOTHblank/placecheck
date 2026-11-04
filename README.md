@@ -43,6 +43,19 @@ Django check/migrations, build
 TypeScript/Vite e smoke do piloto em desktop/celular; captura real agendada e 302
 para a ficha CAIXA observados. Isso não substitui o aceite real completo de #8.
 
+Revalidação em 04/11/2026: a Fonte existente voltou a sincronizar pelo Beat/worker,
+com lista de origem de 03/11. Foram observados dois anúncios recentes em Salvador/BA
+e dois em Campinas/SP, em bancos separados da **mesma Fonte**; não é comparação
+entre Fontes nem busca conjunta entre os recortes. Passaram 33 regressões ILB e
+o smoke real Chromium em desktop/celular em ambos os recortes. A retirada pública
+também foi verificada e restaurada. O [aceite por critério](docs/ilb-pilot.md#revalidação-e-aceite-por-critério--04112026)
+e a [revisão do contrato publicado](docs/ilb-contract-review.md) distinguem entregas
+e pendências: a permissão pública já fundamenta o piloto; histórico e remoção
+confiável ainda impedem o aceite integral de #7/#8.
+Foi corrigido também o deslocamento de um dia da data do inventário na tabela
+comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
+ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.
+
 ### Estudo de entrada VRSync (#15)
 
 A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta

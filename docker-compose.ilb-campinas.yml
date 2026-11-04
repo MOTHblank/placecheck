@@ -1,0 +1,18 @@
+# Add after docker-compose.ilb-pilot.yml, only with -p placecheck-ilb-campinas.
+# Same ILB source in a separate market/database; not an independent second source.
+services:
+  backend:
+    ports: !override
+      - "127.0.0.1:28001:8000"
+    environment:
+      ILB_PILOT_UF: SP
+      ILB_PILOT_CITY: campinas
+      ILB_PILOT_LIMIT: "2"
+  celery:
+    environment:
+      ILB_PILOT_UF: SP
+      ILB_PILOT_CITY: campinas
+      ILB_PILOT_LIMIT: "2"
+  frontend:
+    ports: !override
+      - "127.0.0.1:25174:5173"
