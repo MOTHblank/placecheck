@@ -58,7 +58,7 @@ export function OfferComparison({ offers, transaction }: { offers: Offer[]; tran
           <table className="comparison-table"><thead><tr><th scope="col">Critério</th>{group.map((offer) =>
             <th scope="col" key={offer.id}><strong>{offer.source}</strong><small>{offer.sale_method ? (saleMethodLabels[offer.sale_method] || offer.sale_method) : "Oferta"} · #{offer.id}</small></th>
           )}</tr></thead><tbody>{rows.map((row) =>
-            <tr key={row.label}><th scope="row">{row.label}</th>{group.map((offer) => <td key={offer.id}>{row.render(offer)}</td>)}</tr>
+            <tr key={row.label}><th scope="row">{row.label}</th>{group.map((offer) => <td key={offer.id} data-exposure-offer={offer.id}>{row.render(offer)}</td>)}</tr>
           )}
           <tr><th scope="row">Fonte e atribuição</th>{group.map((offer) =>
             <td key={offer.id}>{offer.attribution_text || offer.source}{offer.source_url && <> · <a href={offer.source_url} target="_blank" rel="noopener noreferrer">Site da fonte</a></>}<div><a href={"#oferta-" + offer.id}>Detalhes e anúncio original</a></div></td>

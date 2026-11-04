@@ -10,6 +10,7 @@ function report(source: number, start: string) {
 }
 
 test("visible exposures, retransmission and repeated clicks yield 50% CTR", async ({ page, context, request }, testInfo) => {
+  if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 851 });
   const city = `Metricópolis ${testInfo.project.name}`;
   const results = await (await request.get(`/api/properties/?city=${encodeURIComponent(city)}`)).json();
   expect(results.count, "Run prepare_analytics_fixtures in the isolated acceptance stack first").toBe(1);
@@ -31,8 +32,10 @@ test("visible exposures, retransmission and repeated clicks yield 50% CTR", asyn
   const dialog = page.getByRole("dialog");
   const articles = dialog.locator(".offer-item");
   await expect(articles).toHaveCount(3);
-  await expect.poll(() => accepted.filter((event) => event.kind === "exposure").length).toBe(1);
-  await articles.nth(1).evaluate((element) => element.scrollIntoView({ block: "start" }));
+  const prices = dialog.getByRole("region", { name: "Tabela: Preços anunciados", exact: true });
+  // These offers are visible in the table before either detailed card is visible.
+  await expect.poll(() => accepted.filter((event) => event.kind === "exposure").length).toBe(testInfo.project.name === "desktop" ? 2 : 1);
+  await prices.locator("thead th").nth(2).scrollIntoViewIfNeeded();
   await expect.poll(() => accepted.filter((event) => event.kind === "exposure").length).toBe(2);
   const exposure = accepted.find((event) => event.kind === "exposure")!;
   const retransmission = await request.post("/api/analytics/events/", { data: exposure });
@@ -44,6 +47,7 @@ test("visible exposures, retransmission and repeated clicks yield 50% CTR", asyn
     await route.fulfill({ status: 200, contentType: "text/html", body: "External navigation intercepted" });
   });
   const link = articles.first().getByRole("link", { name: /Ver anúncio original/ });
+  await link.scrollIntoViewIfNeeded();
   await expect(link).toHaveAttribute("href", /exposure=/);
   for (let index = 0; index < 3; index++) {
     const popupReady = page.waitForEvent("popup");
@@ -53,7 +57,7 @@ test("visible exposures, retransmission and repeated clicks yield 50% CTR", asyn
     await popup.close();
   }
   const row = report(source, start).sources[0];
-  expect(row.exposures).toBe(2); // the third offer was returned but never visible
+  expect(row.exposures).toBe(2); // table and card share an exposure; the third offer stayed hidden
   expect(row.exposures_with_redirect).toBe(1);
   expect(row.raw_redirects).toBe(3);
   expect(row.ctr_percent).toBe(50);

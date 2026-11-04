@@ -118,6 +118,16 @@ período nem interpreta redução por agrupamento como acurácia.
 Validação do #12: 135 testes backend, build TypeScript/Vite, verificações Django e
 12 testes Playwright em desktop/celular passaram num Compose isolado.
 
+Revalidação de 04/11/2026: corrigida a exposição de ofertas na nova tabela do
+comparador, compartilhando a contagem com o cartão da mesma oferta. O Compose
+isolado subiu com os seis serviços; passaram 149 testes backend/PostgreSQL,
+Django check/migrations, build no Node 22 e 14 testes Chromium desktop/celular.
+O aceite comprovou CTR de 50%, estoque 28/14, limpeza via Redis/worker e ingestão
+agendada com repetição, histórico e ausência completa. O aceite da #13 está concluído;
+a correção da #12 foi validada e aguarda integração em `main` para encerramento.
+autorizações e comparação real seguem pendentes em #7–#10/#14. Veja [as evidências e os
+comandos de validação](docs/analytics.md#revalidação-em-04112026).
+
 ### Correção dos dados
 
 - A persistência é atômica, incluindo atualização, histórico e associação. A fonte
