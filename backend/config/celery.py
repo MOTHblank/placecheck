@@ -17,4 +17,8 @@ app.conf.beat_schedule = {
         "task": "apps.ingestion.tasks.sync_active_sources",
         "schedule": settings.CELERY_SYNC_INTERVAL_SECONDS,
     },
+    "check-ilb-availability-every-15-minutes": {
+        "task": "apps.sources.tasks.queue_ilb_availability_checks",
+        "schedule": settings.CELERY_SYNC_INTERVAL_SECONDS,
+    },
 }

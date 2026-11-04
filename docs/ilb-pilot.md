@@ -273,3 +273,18 @@ Depois da captura, use `PLAYWRIGHT_BASE_URL=http://127.0.0.1:25174` no mesmo tes
 O override fixa SP/campinas/2, portas loopback 28001/25174 e banco/cache separados.
 O padrão de Beat permanece 900 s; `ILB_PILOT_SYNC_SECONDS=15` foi usado somente para
 observar o aceite. Pare esse stack com `down` e os mesmos argumentos, sem `-v`.
+
+### Atualização posterior: ausência individual confirmada
+
+A [verificação individual de disponibilidade](ilb-availability.md) foi implementada
+e comprovada pelo Beat/Redis/worker real. O anúncio antigo descrito acima, preservado
+pela captura parcial, recebeu depois um 404 JSON válido do endpoint de detalhe e
+foi inativado. As duas ofertas atuais permaneceram publicáveis; a busca retornou
+duas, e detalhe/redirect da oferta retirada deram 404. Isso não prova que o imóvel
+foi vendido, somente que saiu da lista da ILB.
+
+O status de captura continua parcial e `SyncRun` não recebe um sucesso completo
+inventado. O último resultado individual fica separado no admin. A pendência de
+remoção tem agora implementação e evidência real; a parte de histórico do segundo
+critério de #8 continua pendente, assim como retenção e escopo final dos mercados
+em #7. Não se altera o aceite original nem se declara encerramento integral.

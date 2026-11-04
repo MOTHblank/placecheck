@@ -1,9 +1,10 @@
-"""Limited, cached API pilot. Every capture is partial; no absence reconciliation."""
+"""Limited API pilot: partial discovery and explicit individual availability checks."""
 
 from dataclasses import fields
 from datetime import date
 from decimal import Decimal, InvalidOperation
 import json
+from http.client import HTTPException
 import re
 import unicodedata
 from urllib.error import HTTPError, URLError
@@ -51,22 +52,62 @@ class ImoveisLeilaoBrasilClient:
     def search(self, *, uf, city, limit):
         query = urlencode({"uf": uf.lower(), "cidade": city, "limite": limit,
                            "pagina": 1, "ordem": "preco-menor"})
-        request = Request(f"{API_URL}?{query}", headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+        return self._get_json(f"{API_URL}?{query}")
+
+    def detail(self, external_id):
+        if not isinstance(external_id, str) or not re.fullmatch(r"\d{5,20}", external_id):
+            raise ValueError("ID CAIXA inválido.")
+        return self._get_json(f"https://www.imoveisleilaobrasil.com.br/api/imovel/{external_id}", allow_missing=True)
+
+    def _get_json(self, url, *, allow_missing=False):
+        request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         try:
             with build_opener(_NoRedirect()).open(request, timeout=8) as response:
-                body = response.read(1_048_577)
+                payload = self._read_json(response)
         except HTTPError as error:
+            try:
+                if allow_missing and error.code == 404:
+                    content_type = (error.headers or {}).get("Content-Type", "").split(";")[0].strip().lower()
+                    payload = self._read_json(error)
+                    # Observed API marker; an HTML/proxy/error-page 404 is not evidence.
+                    if content_type == "application/json" and payload == {"erro": "nao encontrado"}:
+                        return None
+                    raise ValueError("Ausência ILB não confirmada pelo contrato JSON.")
+            except (HTTPException, TimeoutError, OSError):
+                raise ProviderTemporaryError("Falha ao ler a resposta de disponibilidade ILB.") from None
+            finally:
+                error.close()
             if error.code == 429 or 500 <= error.code < 600:
                 raise ProviderTemporaryError("API ILB temporariamente indisponível.") from None
             raise ValueError("API ILB recusou a consulta; nenhum inventário confirmado.") from None
-        except (URLError, TimeoutError, OSError):
+        except (HTTPException, URLError, TimeoutError, OSError):
             raise ProviderTemporaryError("Falha de transporte na API ILB.") from None
+        return payload
+
+    def _read_json(self, response):
+        body = response.read(1_048_577)
+        headers = getattr(response, "headers", None) or {}
+        declared = headers.get("Content-Length")
+        if declared is not None:
+            if not isinstance(declared, str) or not re.fullmatch(r"[0-9]+", declared.strip()):
+                raise ValueError("Comprimento HTTP ILB inválido.")
+            expected = int(declared)
+            if expected > 1_048_576:
+                raise ValueError("Resposta ILB excedeu o limite de 1 MiB.")
+            if len(body) != expected:
+                raise ProviderTemporaryError("Resposta HTTP ILB incompleta.")
+        return self._decode(body)
+
+    def _decode(self, body):
         if len(body) > 1_048_576:
             raise ValueError("Resposta ILB excedeu o limite de 1 MiB.")
         try:
-            return json.loads(body, parse_float=Decimal)
+            payload = json.loads(body, parse_float=Decimal)
         except (ValueError, UnicodeError):
             raise ValueError("JSON ILB inválido.") from None
+        if not isinstance(payload, dict):
+            raise ValueError("Objeto JSON ILB inválido.")
+        return payload
 
 
 def _number(item, name, *, integer=False):
@@ -95,6 +136,15 @@ class ImoveisLeilaoBrasilProvider(ApiProvider):
             raise ValueError("O piloto ILB aceita de 1 a 20 anúncios por captura parcial.")
         self.uf, self.city, self.limit = uf.upper(), city, limit
         self.client = client or ImoveisLeilaoBrasilClient()
+
+    def check_availability(self, external_id):
+        item = self.client.detail(external_id)
+        if item is None:
+            return False
+        raw = self.parse(item)
+        if raw.source_external_id != external_id:
+            raise ValueError("Detalhe ILB pertence a outro ID.")
+        return True
 
     def _cached_references(self, scope):
         snapshot = cache.get(f"ilb:catalog:{scope}")
