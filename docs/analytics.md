@@ -213,5 +213,6 @@ O relatório #13 confirmou, em Testópolis/BA/sale, duas Fontes simuladas, 28 an
 14 imóveis e 14 imóveis com múltiplas ofertas: redução por agrupamento de 50%.
 As 112 linhas de histórico refletem as capturas acumuladas das fixtures reutilizadas,
 não uma meta do produto. Os testes isolados verificam também o exemplo 6/4,
-permissões, retirada, falhas e snapshot concorrente. #12/#13 estão concluídas;
+permissões, retirada, falhas e snapshot concorrente. O aceite da #13 está concluído;
+a #12 está validada e aguarda integração da correção em `main` para encerramento.
 os aceites com Fontes reais #7–#10/#14 continuam pendentes.

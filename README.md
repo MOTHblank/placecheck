@@ -123,7 +123,8 @@ comparador, compartilhando a contagem com o cartão da mesma oferta. O Compose
 isolado subiu com os seis serviços; passaram 149 testes backend/PostgreSQL,
 Django check/migrations, build no Node 22 e 14 testes Chromium desktop/celular.
 O aceite comprovou CTR de 50%, estoque 28/14, limpeza via Redis/worker e ingestão
-agendada com repetição, histórico e ausência completa. #12/#13 estão concluídas;
+agendada com repetição, histórico e ausência completa. O aceite da #13 está concluído;
+a correção da #12 foi validada e aguarda integração em `main` para encerramento.
 autorizações e comparação real seguem pendentes em #7–#10/#14. Veja [as evidências e os
 comandos de validação](docs/analytics.md#revalidação-em-04112026).
 
