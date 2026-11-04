@@ -64,9 +64,11 @@ impedem inflação por submissões simultâneas.
 
 Uma abertura aceita recebe `context_token`. Somente ofertas retornadas nesse detalhe
 podem ser registradas como exposição, e precisam continuar ativas/publicadas e com
-retenção permitida. Cada artigo não demo é observado por IntersectionObserver:
-interseção positiva com a área visível, modal aberto e documento visível. A primeira
-interseção conta; voltar ao artigo na mesma abertura não conta de novo. Ofertas
+retenção permitida. As células de dados da tabela comparativa e os cartões não demo
+são observados por IntersectionObserver: interseção positiva com a área visível,
+modal aberto e documento visível. A primeira apresentação conta; tabela e cartão
+compartilham a mesma exposição e token de saída por oferta/abertura. Voltar à mesma
+oferta ou rolar horizontalmente não a conta de novo. Ofertas
 fora da área visível, filtradas ou meramente retornadas pela API não contam.
 
 Exposição aceita recebe `redirect_token`; a UI o usa em `/out/{id}/?exposure=...`.
@@ -168,3 +170,48 @@ Os testes verificam aritmética de 50%, oferta retornada mas não visível, retr
 submissão repetida, navegação, falha de instrumentação, janelas temporais/meia-noite,
 zero denominador, exclusões, perda de Listing/Source, revogação e limpeza. A saída
 real do endpoint é exercitada, interceptando somente a fronteira externa do 302.
+
+### Revalidação em 04/11/2026
+
+A tabela adicionada ao comparador exibia ofertas sem registrar exposições até a
+chegada aos cartões abaixo. O teste `table-exposure.spec.ts` reproduziu zero eventos
+com ofertas visíveis em desktop e celular; após centralizar a observação na abertura,
+os dois cenários passaram. A tabela e o cartão compartilham a exposição, enquanto a
+terceira oferta, em outro grupo fora da área visível, permanece sem contagem.
+Screenshots foram inspecionadas e o build TypeScript/Vite passou.
+
+Esse teste usa Chromium real com respostas controladas nas fronteiras HTTP da API.
+Pode ser executado com Vite local e `PLAYWRIGHT_BASE_URL` apontando para ele:
+
+```bash
+npx playwright test tests/table-exposure.spec.ts --workers=1
+```
+
+O cenário integrado de CTR e suas fixtures foram ajustados para a tabela: duas
+ofertas com preço anunciado e uma terceira com valor de referência, inicialmente
+fora da área visível. A suíte completa passou com **14 testes Chromium**: 12 cenários
+com backend/PostgreSQL reais e dois da regressão com API controlada. Em desktop e
+celular, o comando real confirmou duas exposições, uma com saída, três redirects
+brutos e CTR de 50%, sem contar novamente a oferta ao chegar ao cartão.
+
+`docker compose -p placecheck-acceptance -f docker-compose.yml -f docker-compose.acceptance.yml up -d --build --wait`
+concluiu com os seis serviços. Passaram **149 testes backend/PostgreSQL**, Django
+check, migrations sem divergências e build TypeScript/Vite no Node 22. Permanecem
+dois avisos conhecidos sobre o esquema padrão de URLField no futuro Django 6.
+`verify_async_ingestion` comprovou Beat → Redis → worker, repetição idempotente,
+mudança de preço e inativação por inventário completo vazio. A task
+`purge_expired_analytics.delay()` executou no worker real e retornou somente
+contagens/cutoff; os limites e exclusões da retenção passaram na suíte backend.
+
+O bloqueio inicial de sockets órfãos do Docker Desktop foi resolvido com o aplicativo
+parado, preservando os diretórios locais `Docker/run` e `docker-secrets-engine`
+como backups e permitindo sua recriação. Não houve reset, alteração de configuração
+ou remoção de volumes. O problema e o procedimento constam no
+[relato ao Docker](https://github.com/docker/for-win/issues/15064).
+
+O relatório #13 confirmou, em Testópolis/BA/sale, duas Fontes simuladas, 28 anúncios,
+14 imóveis e 14 imóveis com múltiplas ofertas: redução por agrupamento de 50%.
+As 112 linhas de histórico refletem as capturas acumuladas das fixtures reutilizadas,
+não uma meta do produto. Os testes isolados verificam também o exemplo 6/4,
+permissões, retirada, falhas e snapshot concorrente. #12/#13 estão concluídas;
+os aceites com Fontes reais #7–#10/#14 continuam pendentes.

@@ -100,3 +100,21 @@ Properties, zero históricos e execuções parciais; `latest_complete_success=nu
 reflete a ausência de inventário completo. Nenhuma nova consulta externa foi feita.
 Isso descreve a amostra local, sem comprovar estoque completo/atualizado do parceiro,
 cobertura nacional, comparação real entre Fontes ou o aceite integrado #14.
+
+### Revalidação de 04/11/2026
+
+O Compose isolado de aceitação subiu com seis serviços e a suíte completa passou
+com 149 testes backend/PostgreSQL, incluindo os 14 casos deste relatório. Django
+check/migrations, build no Node 22 e 14 testes Chromium também passaram.
+
+O comando real com `--city Testópolis --state BA --transaction sale` retornou duas
+Fontes simuladas, 28 anúncios ativos, 14 imóveis representados e 14 imóveis com
+múltiplas ofertas, sem anúncios sem Property. A redução foi 50%; os históricos
+retidos foram 112, acumulados pelas execuções das fixtures existentes. Por Fonte,
+14 anúncios/14 imóveis e redução de 0%, demonstrando por que não somar Properties
+entre Fontes. Coleta pausada e ausência de SyncRun dessas fontes manuais apareceram
+explicitamente. `verify_async_ingestion` comprovou separadamente os estados de
+captura agendada, repetição, preço e inativação completa no worker real.
+
+O aceite técnico de #13 está concluído. Esses dados são sintéticos e não encerram
+autorizações, revisão de associações reais ou aceite integrado #14.

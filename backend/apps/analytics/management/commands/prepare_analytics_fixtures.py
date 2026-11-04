@@ -27,6 +27,7 @@ class Command(BaseCommand):
                     "property": property_, "city": property_.city, "state": "BA", "neighborhood": "Fixture",
                     "property_type": "apartment", "transaction_type": "sale", "is_active": True,
                     "title": f"Oferta sintética {index}", "price": 100000 + index * 1000,
+                    "price_kind": "reference" if index == 2 else "asking",
                     "description": "Fixture de visibilidade; não representa inventário real. " * 100,
                     "url": f"https://fixture.invalid/analytics/{device}/{index}",
                 })
