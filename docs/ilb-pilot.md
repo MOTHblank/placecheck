@@ -164,3 +164,112 @@ Revisão independente segundo `mattpocock-skills:code-review`:
 Permanecem pendentes: escopo de publicação aberta, retenção/histórico autorizados,
 contrato de remoção e snapshot completo, cobertura de vários mercados aprovada e
 demonstrada, segunda Fonte sobreposta e aceite integral. #7/#8 permanecem abertos.
+
+## Revalidação e aceite por critério — 04/11/2026
+
+A [revisão das fontes primárias](ilb-contract-review.md) confirma a permissão
+publicada para uso de dados com atribuição e os exemplos de monitoramento/cache.
+Não há exigência publicada de parceria privada para o piloto. Isso corrige a
+interpretação de que faltaria identificar ou obter qualquer fonte antes de avançar:
+**a ILB já é uma Fonte real implementada e utilizável no escopo interno existente**.
+Histórico individual/prazo de retenção e publicação aberta continuam sem escopo
+específico aprovado no projeto; sua ausência não é prova de proibição pelo operador.
+
+O `robots.txt` atual respondeu 200 no container, com User-Agent Placecheck;
+mantém a restrição genérica a `/api/` e exceções nominais. Não usamos outro agente
+para obtê-las. O piloto continua cliente da interface JSON expressamente oferecida,
+sem rastreamento HTML, buscas ou contorno de bloqueios.
+
+### Evidência operacional atual
+
+- Ambos os stacks subiram com seis serviços. Beat configurado em 15 s para o aceite;
+  o cache da consulta permanece diário, sem repetir HTTP a cada ciclo.
+- Salvador/BA: novas execuções parciais processaram dois anúncios da lista de 03/11.
+  Um ID novo entrou, um anterior foi atualizado e um terceiro, visto em 31/10,
+  permaneceu ativo por não estar na página parcial. Duas capturas consecutivas
+  não duplicaram o estoque. **Três anúncios retidos não significam três confirmados
+  na última captura**, nem que o mais antigo foi vendido.
+- Campinas/SP: banco novo com dois anúncios, mesma data de origem e repetição
+  agendada sem duplicação. É a mesma Fonte em outro recorte isolado, não segunda
+  Fonte, inventário completo, cobertura nacional ou busca conjunta entre cidades.
+- O smoke Chromium passou em desktop/celular para os dois recortes: busca/detalhe,
+  tipos de valor, atribuição, data de origem, ausência de descrição/histórico e
+  tráfego interno excluído. O endpoint real retornou 302 para a ficha CAIXA;
+  o navegador interceptou a fronteira externa, sem contato/transação.
+- Uma ficha oficial correspondente a Salvador foi aberta separadamente e respondeu
+  com o mesmo número CAIXA, confirmando o destino público: [ficha oficial](https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=8444400798566).
+  Essa checagem não garante disponibilidade futura; conteúdo pessoal, endereço,
+  descrição e imagens não foram adicionados ao dataset.
+- Retirada pública temporária na Source real de Salvador: busca vazia, detalhe
+  e saída 404. O `finally` restaurou o estado anterior. A primeira tentativa do
+  cliente interno usou Host `testserver` e foi recusada; o aceite foi repetido com
+  `localhost`, sem alterar ALLOWED_HOSTS.
+- Passaram os **33 testes** de `test_ilb_provider.py` e `test_ilb_pipeline.py`.
+  Screenshots dos quatro cenários foram inspecionadas; os testes não inventam IDs,
+  preços nem quantidades fixas. A suíte geral de 149 testes é a baseline anterior
+  do mesmo código de aplicação, não uma nova execução desta revalidação.
+- A inspeção descobriu uma falha de apresentação: `source_inventory_date`, uma
+  data sem horário, aparecia um dia antes na tabela em America/Bahia, enquanto
+  o cartão conservava o dia correto. A regressão com `2026-11-03` falhou mostrando
+  `02/11/2026`; a tabela passou a preservar `03/11/2026`. Timestamps de captura
+  continuam sendo convertidos para o horário local. O smoke real compara a data
+  da tabela com a data do inventário retornada pela API local.
+  Após a correção passaram o build no Node 22, 14 testes gerais de navegador
+  (os dois smokes reais ficaram ignorados por padrão) e quatro smokes opt-in,
+  desktop/celular em Salvador e Campinas, todos em America/Bahia.
+
+### #7 — Insumos e escopo da primeira Fonte
+
+| Critério original | Estado e evidência |
+| --- | --- |
+| Identidade do titular/domínio | Atendido para a fonte pública escolhida: ILB/Spartan TI, origem CAIXA, domínio e termos identificados. Não é parceria com imobiliária nem com a CAIXA. |
+| Permissão abrangendo os tratamentos | Parcial: uso dos dados com atribuição é permitido. Falta decisão registrada sobre histórico/retenção e publicação aberta; não transformar silêncio em proibição ou autorização específica. |
+| Amostra/IDs/entrega/completude/exclusão | Parcial: API real, amostras em dois recortes e IDs estáveis confirmados. Captura é parcial; não há contrato de snapshot atômico. Detalhe 404 é uma base técnica para futura verificação individual, ainda não implementada. |
+| Cobertura acordada | Dois mercados de venda exercitados em bancos separados. Falta confirmar o escopo final; não alegar inventário conjunto ou aluguel. |
+| Segredos e dados restritos | Atendido no piloto: sem credenciais, contatos, endereços, descrição ou imagens armazenados. |
+| Conclusão humana | Mantida: os itens anteriores não autorizam mudar silenciosamente os critérios do ticket ou declarar aceite integral. |
+
+### #8 — Integração da primeira Fonte
+
+| Critério original | Estado e evidência |
+| --- | --- |
+| Provider específico/IDs/URLs/pipeline | Atendido. O provider existente usa RawListing/Normalizer/persistência, sem escrever em Listing. |
+| Captura/idempotência/histórico/inativação | Parcial. Agendamento real e repetição passaram; atualiza preço sem histórico. Ausência de página parcial não inativa. |
+| Busca/detalhes/saída/permissões/retirada | Atendido no escopo interno: dois recortes reais, 302 oficial, retirada verificada e restauração. Sem comparação entre Fontes. |
+| Cobertura conforme acordo | Parcial: dois recortes comprovados, escopo final de #7 ainda pendente. |
+| Fixtures/regressões | Atendido: 33 casos cobrem formato, cache, validação, erros, repetição, atualização sem histórico, captura parcial e retirada. |
+| Operação/evidências/limites | Atendido para o piloto interno, com comandos reproduzíveis abaixo e sem segredos. |
+
+Não se encerram #7/#8 com esses aceites parciais. Próximo trabalho concreto:
+definir a retenção de preços no escopo interno e implementar/testar remoção
+individual por resposta de detalhe validada, ou obter um snapshot completo confiável.
+Um 404 deve significar apenas saída da lista da Fonte, sem inferir venda; timeout,
+403, bloqueio, HTML inesperado e ausência na página jamais podem virar exclusão.
+Também falta decidir como reunir os mercados no piloto final, preservando uma
+única identidade da Fonte e sem enfraquecer a deduplicação.
+
+### Repetir o smoke sem coletar mais anúncios pelo teste
+
+Após a sincronização agendada do stack padrão, em `frontend/`:
+
+```powershell
+$env:ILB_PILOT_BROWSER = '1'
+$env:PLAYWRIGHT_BASE_URL = 'http://127.0.0.1:25173'
+node node_modules/@playwright/test/cli.js test tests/ilb-pilot.spec.ts --workers=1
+```
+
+O arquivo é opt-in: fica ignorado por execução quando `ILB_PILOT_BROWSER` não é `1`.
+O teste só lê a API local e intercepta o destino do redirect. Não executa ingestão,
+não altera permissões e não navega automaticamente no site oficial.
+
+Para reproduzir Campinas em projeto separado, na raiz:
+
+```powershell
+docker compose -p placecheck-ilb-campinas -f docker-compose.yml -f docker-compose.ilb-pilot.yml -f docker-compose.ilb-campinas.yml up -d --build --wait
+docker compose -p placecheck-ilb-campinas -f docker-compose.yml -f docker-compose.ilb-pilot.yml -f docker-compose.ilb-campinas.yml exec -T backend python manage.py setup_ilb_pilot
+```
+
+Depois da captura, use `PLAYWRIGHT_BASE_URL=http://127.0.0.1:25174` no mesmo teste.
+O override fixa SP/campinas/2, portas loopback 28001/25174 e banco/cache separados.
+O padrão de Beat permanece 900 s; `ILB_PILOT_SYNC_SECONDS=15` foi usado somente para
+observar o aceite. Pare esse stack com `down` e os mesmos argumentos, sem `-v`.

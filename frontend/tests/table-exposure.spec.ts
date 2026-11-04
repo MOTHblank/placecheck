@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+test.use({ timezoneId: "America/Bahia" });
+
 test("table and detailed card share one exposure per visible offer", async ({ page }, testInfo) => {
   if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 851 });
   const offers = [101, 102, 103].map((id) => ({
     id, source: "Fonte de teste", source_id: 1, is_demo: false, transaction_type: "sale",
     price_kind: id === 103 ? "reference" : "asking", price: "100000", area: "80",
     condominium_fee: null, iptu: null, price_per_m2: "1250", last_seen_at: null,
-    source_inventory_date: null, previous_price: null, lowest_price: null,
+    source_inventory_date: "2026-11-03", previous_price: null, lowest_price: null,
     price_drop_percent: null, price_history: [], days_on_market: 1,
     description: "Oferta sintética para verificar visibilidade. ".repeat(100),
   }));
@@ -29,6 +31,7 @@ test("table and detailed card share one exposure per visible offer", async ({ pa
   await page.getByRole("button", { name: /Ver ofertas/ }).click();
   const dialog = page.getByRole("dialog");
   const table = dialog.getByRole("region", { name: "Tabela: Preços anunciados", exact: true });
+  await expect(table.getByRole("row", { name: /Inventário da fonte/ })).toContainText("03/11/2026");
   await expect(table.getByText("R$ 100.000", { exact: true }).first()).toBeVisible();
   await expect.poll(() => exposures.length).toBe(testInfo.project.name === "desktop" ? 2 : 1);
   await table.locator("thead th").nth(2).scrollIntoViewIfNeeded();
