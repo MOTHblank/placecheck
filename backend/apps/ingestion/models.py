@@ -1,6 +1,19 @@
 from django.db import models
 
 from apps.sources.models import Source
+from apps.listings.models import Listing
+
+
+class ListingAvailabilityCheck(models.Model):
+    class Status(models.TextChoices):
+        AVAILABLE = "available", "Presente na Fonte"
+        MISSING = "missing", "Ausência confirmada na Fonte"
+        FAILED = "failed", "Falha; disponibilidade desconhecida"
+
+    listing = models.OneToOneField(Listing, on_delete=models.CASCADE, related_name="availability_check")
+    checked_at = models.DateTimeField()
+    status = models.CharField(max_length=12, choices=Status.choices)
+    failure = models.CharField(max_length=100, blank=True)
 
 
 class SyncRun(models.Model):

@@ -56,6 +56,13 @@ Foi corrigido também o deslocamento de um dia da data do inventário na tabela
 comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
 ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.
 
+A [verificação individual de disponibilidade](docs/ilb-availability.md) complementa
+a captura parcial: consulta somente anúncios conhecidos sem captura recente,
+em lotes de até dez, com cadência diária e o rate limit da Fonte. Apenas o 404
+JSON validado do detalhe pode inativar uma oferta; falhas preservam os dados.
+O último resultado fica no admin de ingestão, sem guardar preço ou corpo HTTP.
+Histórico/retenção e escopo final dos mercados continuam pendentes em #7/#8.
+
 ### Estudo de entrada VRSync (#15)
 
 A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta

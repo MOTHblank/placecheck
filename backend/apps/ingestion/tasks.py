@@ -2,10 +2,10 @@ import logging
 from typing import Any
 
 from celery import Task, chord, chain, shared_task
-from django.core.cache import cache
 from django.db import DatabaseError
 
 from apps.ingestion.exceptions import ProviderTemporaryError, SourceRateLimitExceeded
+from apps.ingestion.limits import check_source_rate_limit
 from apps.ingestion.services import persist_listing, reconcile_source_listings
 from apps.sources.models import Source
 from apps.sources.normalizers import normalize_listing
@@ -36,20 +36,6 @@ def _source_or_raise(source_id: int) -> Source:
         raise ValueError(f"Source ativa não encontrada: {source_id}") from error
 
 
-def _check_source_rate_limit(source: Source) -> None:
-    key = f"placecheck:source-rate:{source.pk}"
-    try:
-        if cache.add(key, 1, timeout=60):
-            current = 1
-        else:
-            current = cache.incr(key)
-    except ValueError:
-        current = 1
-        cache.set(key, current, timeout=60)
-    if current > source.rate_limit_per_minute:
-        raise SourceRateLimitExceeded(f"Rate limit atingido para source={source.pk}")
-
-
 @shared_task(base=IngestionTask, bind=True, autoretry_for=(ProviderTemporaryError, SourceRateLimitExceeded, DatabaseError), retry_backoff=True, max_retries=3, soft_time_limit=30, time_limit=45)
 def sync_source(self, source_id: int) -> int:
     """Descobre referências e agenda o pipeline completo da fonte."""
@@ -58,7 +44,7 @@ def sync_source(self, source_id: int) -> int:
     if run.status not in ("discovering", "running"):
         return 0
     try:
-        _check_source_rate_limit(source)
+        check_source_rate_limit(source)
     except SourceRateLimitExceeded as error:
         raise self.retry(exc=error, countdown=60, max_retries=None)
     provider = build_provider(source)
@@ -100,7 +86,7 @@ def fetch_listing(self, source_id: int, reference: str, *, run_id=None) -> Any:
     if run_id and not source.sync_runs.filter(pk=run_id, status="running").exists():
         return None
     try:
-        _check_source_rate_limit(source)
+        check_source_rate_limit(source)
     except SourceRateLimitExceeded as error:
         if not self.request.id:
             raise
