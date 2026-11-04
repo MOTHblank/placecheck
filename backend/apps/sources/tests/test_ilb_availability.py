@@ -1,6 +1,7 @@
 from datetime import timedelta
 from io import BytesIO
 import json
+from http.client import HTTPResponse
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.error import URLError
@@ -288,3 +289,37 @@ def test_availability_uses_the_same_source_rate_budget_as_ingestion():
     assert result.failed() and isinstance(result.result, SourceRateLimitExceeded)
     listing.refresh_from_db()
     assert listing.is_active and not hasattr(listing, "availability_check")
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS)
+@pytest.mark.parametrize("status,framing", [(404, "length"), (404, "chunked"), (200, "length"), (200, "chunked")])
+@pytest.mark.parametrize("complete", [False, True])
+def test_real_http_response_is_accepted_only_when_framing_is_complete(status, framing, complete):
+    from apps.sources.tasks import check_ilb_listing_availability
+
+    cache.clear()
+    listing = old_listing()
+    body = b'{"erro":"nao encontrado"}' if status == 404 else json.dumps(api_item()).encode()
+    class Socket:
+        def makefile(self, *args):
+            size = len(body) if complete else len(body) + 20
+            headers = (f"Content-Length: {size}\r\n" if framing == "length" else "Transfer-Encoding: chunked\r\n").encode()
+            content = body if framing == "length" else f"{size:x}\r\n".encode() + body + (b"\r\n0\r\n\r\n" if complete else b"")
+            return BytesIO(f"HTTP/1.1 {status} result\r\nContent-Type: application/json\r\n".encode()
+                           + headers + b"\r\n" + content)
+    def truncated(*args, **kwargs):
+        response = HTTPResponse(Socket())
+        response.begin()
+        if status == 404:
+            raise HTTPError("https://unused.invalid", status, "Not Found", response.headers, response)
+        return response
+    with patch("urllib.request.OpenerDirector.open", side_effect=truncated) as network:
+        expected = ("missing" if status == 404 else "available") if complete else "failed"
+        assert check_ilb_listing_availability.delay(listing.source_id, listing.pk).get() == expected
+    assert network.call_count == (1 if complete else 4)
+    listing.refresh_from_db()
+    assert listing.is_active == (not complete or status == 200)
+    assert listing.availability_check.failure == ("" if complete else "ProviderTemporaryError")
+    with patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Daily cooldown")):
+        assert check_ilb_listing_availability.delay(listing.source_id, listing.pk).get() == "skipped"
