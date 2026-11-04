@@ -85,3 +85,9 @@ verificação final não depende do registro histórico de 31/10.
 Validação desta revisão: confrontação documental com fontes primárias. As capturas,
 testes, configuração adicional e a correção de apresentação estão documentadas em
 [ilb-pilot.md](ilb-pilot.md#revalidação-e-aceite-por-critério--04112026).
+
+Atualização técnica posterior: a [verificação individual](ilb-availability.md)
+foi implementada e executada pelo worker real, com uma ausência validada do
+catálogo e retirada pública daquela oferta. A recomendação técnica de remoção
+individual acima foi atendida; isso não cria garantia de snapshot completo nem
+resolve a interpretação/decisão de retenção do histórico de preços.

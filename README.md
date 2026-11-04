@@ -50,8 +50,8 @@ entre Fontes nem busca conjunta entre os recortes. Passaram 33 regressões ILB e
 o smoke real Chromium em desktop/celular em ambos os recortes. A retirada pública
 também foi verificada e restaurada. O [aceite por critério](docs/ilb-pilot.md#revalidação-e-aceite-por-critério--04112026)
 e a [revisão do contrato publicado](docs/ilb-contract-review.md) distinguem entregas
-e pendências: a permissão pública já fundamenta o piloto; histórico e remoção
-confiável ainda impedem o aceite integral de #7/#8.
+e pendências: a permissão pública já fundamenta o piloto; histórico/retenção e
+escopo final dos mercados ainda impedem o aceite integral de #7/#8.
 Foi corrigido também o deslocamento de um dia da data do inventário na tabela
 comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
 ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.
@@ -62,6 +62,11 @@ em lotes de até dez, com cadência diária e o rate limit da Fonte. Apenas o 40
 JSON validado do detalhe pode inativar uma oferta; falhas preservam os dados.
 O último resultado fica no admin de ingestão, sem guardar preço ou corpo HTTP.
 Histórico/retenção e escopo final dos mercados continuam pendentes em #7/#8.
+Validação: 189 testes backend/PostgreSQL, Django check/migrations e smoke real
+desktop/celular passaram. Beat → Redis → worker confirmou a ausência de um anúncio
+antigo e o retirou da busca/detalhe/redirect, preservando duas ofertas e a última
+captura. As [duas revisões e a correção de transporte](docs/ilb-availability-review.md)
+estão documentadas; capturas continuam parciais.
 
 ### Estudo de entrada VRSync (#15)
 

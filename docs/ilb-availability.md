@@ -105,3 +105,31 @@ operacional de Beat/Redis/worker, registrada separadamente após o smoke.
 Esta entrega fecha a implementação de confirmação individual; não habilita
 histórico/retenção de preços, inventário conjunto dos mercados ou segunda Fonte,
 e não encerra silenciosamente #7/#8 ou o aceite integrado #14.
+
+## Aceite operacional em 04/11/2026
+
+Após aplicar a migration aditiva, o Compose do piloto foi reconstruído e os
+serviços ficaram saudáveis. Não houve recriação da Source, alteração de histórico
+nem enfileiramento manual. Beat foi temporariamente configurado em 15 s para
+observar o agendamento e depois voltou ao intervalo normal de 900 s.
+
+Havia um anúncio elegível visto pela última vez em 31/10, fora da página recente.
+Às 19:31 (America/Bahia), Beat → Redis → worker selecionou um ID conhecido e
+registrou `missing` sem falha, após receber o 404 JSON válido da ILB. O Listing
+`8555515181709` ficou inativo e conservou `last_seen_at` em
+31/10/2026 15:37:14 UTC. Busca retornou as duas ofertas restantes; detalhe e
+redirect do anúncio retirado responderam 404. Não houve exclusão física nem
+inferência de venda. Os ciclos seguintes registraram zero verificações enfileiradas.
+
+O smoke Chromium das ofertas restantes passou em desktop/celular, incluindo
+atribuição, data do inventário, ausência de histórico e 302 original interceptado.
+Não houve contato/transação. Nenhuma resposta de disponibilidade foi usada para
+alterar preço ou fabricar um novo preço histórico.
+
+Passaram **189 testes backend/PostgreSQL**, Django check e migrations sem
+divergências. A nova suíte tem 40 casos, incluindo controles positivos e negativos
+de integridade HTTP com HTTPResponse real em memória. Permanecem somente os dois
+avisos anteriores de URLField/Django 6. As [revisões independentes](ilb-availability-review.md)
+encontraram um problema de transporte comum a ambos os eixos, corrigido e fechado.
+O build e a suíte geral de frontend são a baseline aprovada no PR #18; não houve
+alteração de frontend nesta entrega, apenas o novo smoke real de dois cenários.
