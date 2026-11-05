@@ -62,7 +62,9 @@ def persist_listing(source, listing: NormalizedListing, *, run_id=None) -> Listi
         persisted.save()
     else:
         persisted.save(update_fields=[*values, "last_seen_at", "updated_at"])
-    if source.can_retain_price_history and persisted.price is not None and (created or previous_price != persisted.price):
+    if source.can_retain_price_history and persisted.price is not None and (
+        created or previous_price != persisted.price or not persisted.price_history.exists()
+    ):
         ListingPriceHistory.objects.create(listing=persisted, price=persisted.price)
     match_listing_to_property(persisted)
     if run and persisted.external_id not in run.processed_ids:

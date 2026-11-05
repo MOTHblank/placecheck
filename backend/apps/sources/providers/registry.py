@@ -21,6 +21,14 @@ def configured_ilb_provider(source=None):
     else:
         providers = [ImoveisLeilaoBrasilProvider(uf=settings.ILB_PILOT_UF, city=settings.ILB_PILOT_CITY,
                                                limit=settings.ILB_PILOT_LIMIT)]
+    restricted_scope = len(providers) > 1 or settings.ILB_PILOT_PRICE_HISTORY or (
+        source is not None and source.can_retain_price_history
+    )
+    if restricted_scope and (
+        settings.ILB_PILOT_LIMIT > 2
+        or any(provider.collection_scope not in {"BA:salvador", "SP:campinas"} for provider in providers)
+    ):
+        raise ValueError("Piloto conjunto e histórico aprovados somente para Salvador/BA e Campinas/SP, até dois itens por mercado.")
     if source and source.rate_limit_per_minute < len(providers):
         raise ValueError("Rate limit da Fonte deve comportar os mercados da descoberta.")
     provider = providers[0] if len(providers) == 1 else ImoveisLeilaoBrasilMarketsProvider(providers,

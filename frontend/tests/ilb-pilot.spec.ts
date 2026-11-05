@@ -2,15 +2,21 @@ import { expect, test } from "@playwright/test";
 
 test.use({ timezoneId: "America/Bahia" });
 
-test("ILB real inventory supports search, attribution and the official redirect", async ({ page, context, request }, testInfo) => {
+const pilotCities = process.env.ILB_PILOT_BROWSER_CITIES?.split(",").map((city) => city.trim()).filter(Boolean) || [""];
+
+for (const city of pilotCities) {
+test(`ILB real inventory supports search, attribution and the official redirect${city ? ` in ${city}` : ""}`, async ({ page, context, request }, testInfo) => {
   test.skip(process.env.ILB_PILOT_BROWSER !== "1", "Opt-in: use the isolated ILB pilot, never acceptance fixtures.");
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  const response = await request.get("/api/properties/?transaction_type=sale&ordering=-updated_at");
+  const inventoryFilters = new URLSearchParams({ transaction_type: "sale", ordering: "-updated_at" });
+  if (city) inventoryFilters.set("city", city);
+  const response = await request.get(`/api/properties/?${inventoryFilters}`);
   expect(response.ok()).toBe(true);
   const inventory = await response.json();
   expect(inventory.count, "Wait for at least one successful partial ILB SyncRun").toBeGreaterThan(0);
   const property = inventory.results[0];
+  if (city) expect(property.city).toBe(city);
   const filters = new URLSearchParams({ city: property.city, state: property.state, transaction_type: "sale" });
   const detailResponse = await request.get(`/api/properties/${property.id}/?${filters}`);
   expect(detailResponse.ok()).toBe(true);
@@ -66,3 +72,4 @@ test("ILB real inventory supports search, attribution and the official redirect"
   expect(errors).toEqual([]);
   await popup.close();
 });
+}

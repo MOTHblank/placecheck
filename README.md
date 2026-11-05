@@ -27,7 +27,7 @@ O [piloto Imóveis Leilão Brasil/CAIXA](docs/ilb-pilot.md) permite buscar uma a
 real limitada por UF/cidade em um Compose isolado. Ele usa a API pública com
 atribuição, cache diário e Celery, distinguindo valor mínimo de preço de venda.
 Não há coleta nacional automática; descrição, imagens e histórico ficam desligados,
-e capturas parciais não inativam ausências. O aceite completo de #7/#8 segue pendente.
+e capturas parciais não inativam ausências. O aceite operacional da #8 segue pendente.
 
 ```bash
 docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml up -d --build --wait
@@ -45,17 +45,21 @@ habilita explicitamente o histórico interno confirmado pelo responsável, com
 revogação e remoção pela permissão da Fonte; os pilotos antigos mantêm o padrão
 desligado. Essa opção não constitui comparação entre duas Fontes.
 
-Validação do conjunto em 05/11/2026: 202 testes backend passaram no PostgreSQL
-local temporário com cache/broker em memória; build frontend, Django check e
-configuração Compose passaram. O Docker Desktop falhou ao iniciar por erro no
-socket `dockerInference`; o aceite do novo inventário com Beat/Redis/worker e
-navegador reais continua pendente. Consulte o guia para distinguir essa validação
-das evidências anteriores dos pilotos separados.
+Revalidação do conjunto em 05/11/2026: Docker recuperado preservando pastas
+temporárias de IPC, sem reset de volumes. Passaram 211 testes no stack
+Python 3.12/PostgreSQL 16, incluindo broker Redis real, build Node 22,
+Django check/migrations, 14 cenários gerais de navegador e quatro smokes reais
+das duas cidades em desktop/celular. Beat → Redis → worker importou e repetiu
+quatro ofertas, preservando quatro registros iniciais de preço. A instalação
+limpa revelou incompatibilidade Kombu/Redis, corrigida fixando o transporte já
+transitivo. Consulte [as evidências, a revisão e a revogação](docs/ilb-joint-acceptance.md).
+Falta observar mudança de preço na Fonte real para concluir #8; o ciclo com
+mudança passou no stack controlado, mas não substitui essa evidência.
 
 Os insumos e a decisão humana da [#7](https://github.com/MOTHblank/placecheck/issues/7)
 foram concluídos para esse escopo interno. A implementação está no
-[PR #20](https://github.com/MOTHblank/placecheck/pull/20), em draft até o aceite
-operacional da #8. A confirmação não identifica uma segunda Fonte para #9/#10.
+[PR #20](https://github.com/MOTHblank/placecheck/pull/20). A confirmação não
+identifica uma segunda Fonte para #9/#10.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.

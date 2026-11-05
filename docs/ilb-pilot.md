@@ -5,6 +5,10 @@ em [#7](https://github.com/MOTHblank/placecheck/issues/7#issuecomment-6539495357
 Este piloto exercita o início de #8; não conclui as autorizações de #7 ou o aceite
 real completo de #8/#14. Não é parceria com a CAIXA ou com o operador da API.
 
+Estado atual: escopo interno da #7 concluído; inventário conjunto em execução.
+Veja o [aceite de 05/11/2026](ilb-joint-acceptance.md) para as evidências reais,
+correções da revisão, revogação e o critério de mudança real de preço ainda pendente.
+
 ## Base de uso e recorte
 
 O operador é Spartan TI (Spartan Tecnologia e Soluções Inteligentes Ltda). A
@@ -102,6 +106,10 @@ nesse banco. Os volumes desse projeto ficam separados dos outros pilotos.
 explícitos, com até dois anúncios por mercado nesse override. Quando vazio,
 preserva a configuração anterior por `ILB_PILOT_UF`/`ILB_PILOT_CITY`.
 Recortes repetidos, inválidos ou mais de dois falham antes da criação da Fonte.
+Coleta conjunta e retenção de histórico aceitam somente os mercados aprovados
+Salvador/BA e Campinas/SP, até dois itens por mercado; a validação também considera
+a permissão persistida na Fonte. O modo legado de um mercado sem histórico mantém
+seu limite anterior, de até 20 itens, conforme configuração do piloto original.
 A ordem é canônica: `BA:salvador|SP:campinas`. Uma Fonte existente não pode
 trocar seu escopo; use o novo projeto isolado para preservar inventários antigos.
 
@@ -120,8 +128,9 @@ permissão geral de dados com atribuição nos termos §6 e os exemplos de monit
 da API; é uma decisão do responsável para o piloto, não uma nova declaração
 específica do operador. Não há autorização de publicação aberta nem segunda Fonte.
 
-O override conjunto define `ILB_PILOT_PRICE_HISTORY=1`; o padrão global permanece
-`0`. `setup_ilb_pilot` aplica essa opção a `can_retain_price_history`, reutilizando
+O override conjunto usa `ILB_JOINT_PRICE_HISTORY`, padrão `1`, para configurar
+`ILB_PILOT_PRICE_HISTORY`; o padrão global deste último permanece `0`.
+`setup_ilb_pilot` aplica essa opção a `can_retain_price_history`, reutilizando
 a persistência atômica existente: primeira captura e mudanças de valor geram
 registros; repetição não duplica. Não há reconstrução retroativa de preços.
 O histórico é retido somente enquanto permitido no piloto; não foi acordado
@@ -180,8 +189,10 @@ docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.i
 Para retirar, no admin da Source desligue **publicação e coleta** e salve:
 `is_published=False`, `is_active=False`. Pausa só da coleta mantém os dados visíveis.
 Desligar apenas a flag de configuração também não equivale a retirada pública.
-`setup_ilb_pilot` habilita novamente a Source e restaura as permissões restritas;
-não o execute durante uma retirada que precisa permanecer em vigor.
+`setup_ilb_pilot` preserva pausa e retirada de uma Source existente e aplica as
+permissões configuradas. Retomar publicação/coleta exige decisão explícita no
+admin. A [revogação persistente do histórico](ilb-joint-acceptance.md#operação-e-revogação)
+usa `ILB_JOINT_PRICE_HISTORY=0` no `.env`, recriação dos serviços e repetição do setup.
 
 Para parar o ambiente, preserve os volumes:
 

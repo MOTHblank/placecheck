@@ -9,6 +9,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.ingestion.tasks import sync_source
@@ -205,3 +206,73 @@ def test_opted_in_internal_price_history_is_idempotent_and_revocable():
     assert not source.can_retain_price_history
     assert listing.price_history.count() == 0
     assert source.listings.get(city="Campinas").price_history.count() == 0
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS, ILB_PILOT_MARKETS=MARKETS, ILB_PILOT_PRICE_HISTORY=True)
+def test_revoking_history_does_not_republish_or_resume_a_withdrawn_source():
+    cache.clear()
+    call_command("setup_ilb_pilot")
+    source = Source.objects.get(slug=SOURCE_SLUG)
+    with patch("urllib.request.OpenerDirector.open", side_effect=market_response):
+        sync_source.delay(source.pk).get()
+    listing = source.listings.get(city="Salvador")
+    source.is_active = source.is_published = False
+    source.save()
+    with override_settings(ILB_PILOT_PRICE_HISTORY=False):
+        call_command("setup_ilb_pilot")
+    source.refresh_from_db()
+    assert not source.is_active and not source.is_published
+    assert listing.price_history.count() == 0
+    client = APIClient()
+    assert client.get("/api/properties/").json()["count"] == 0
+    assert client.get(f"/out/{listing.pk}/").status_code == 404
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS, ILB_PILOT_MARKETS=MARKETS)
+def test_enabling_history_records_the_first_authorized_observation_of_an_unchanged_price():
+    cache.clear()
+    call_command("setup_ilb_pilot")
+    source = Source.objects.get(slug=SOURCE_SLUG)
+    with patch("urllib.request.OpenerDirector.open", side_effect=market_response):
+        sync_source.delay(source.pk).get()
+    listing = source.listings.get(city="Salvador")
+    assert listing.price_history.count() == 0
+    authorized_at = timezone.now()
+    with override_settings(ILB_PILOT_PRICE_HISTORY=True):
+        call_command("setup_ilb_pilot")
+    with patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Daily cache")):
+        sync_source.delay(source.pk).get()
+        sync_source.delay(source.pk).get()
+    observation = listing.price_history.get()
+    assert observation.price == listing.price
+    assert observation.captured_at >= authorized_at
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS, ILB_PILOT_PRICE_HISTORY=True)
+@pytest.mark.parametrize("markets,limit", [("RJ:rio-de-janeiro", 2), (MARKETS, 3), (MARKETS, 20)])
+def test_history_rejects_expansion_outside_the_approved_internal_scope(markets, limit):
+    with override_settings(ILB_PILOT_MARKETS=markets, ILB_PILOT_LIMIT=limit), pytest.raises(CommandError):
+        call_command("setup_ilb_pilot")
+    assert not Source.objects.exists()
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS, ILB_PILOT_PRICE_HISTORY=False)
+@pytest.mark.parametrize("markets,limit", [("RJ:rio-de-janeiro,SP:santos", 2), (MARKETS, 20)])
+def test_joint_collection_scope_remains_bounded_when_history_is_disabled(markets, limit):
+    with override_settings(ILB_PILOT_MARKETS=markets, ILB_PILOT_LIMIT=limit), pytest.raises(CommandError):
+        call_command("setup_ilb_pilot")
+    assert not Source.objects.exists()
+
+
+@pytest.mark.django_db
+@override_settings(**PILOT_SETTINGS, ILB_PILOT_PRICE_HISTORY=True)
+def test_worker_checks_persisted_history_permission_when_its_environment_disagrees():
+    call_command("setup_ilb_pilot")
+    source = Source.objects.get(slug=SOURCE_SLUG)
+    with override_settings(ILB_PILOT_PRICE_HISTORY=False, ILB_PILOT_LIMIT=20):
+        with pytest.raises(ImproperlyConfigured):
+            build_provider(source)
