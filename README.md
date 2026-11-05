@@ -115,6 +115,14 @@ candidata com API anunciada para portais, mas ainda sem permissão e contrato
 verificados. A documentação indexada e as falhas de abertura direta são
 distintas; nenhuma chave, assinatura ou coleta foi iniciada.
 
+A [busca por permissões públicas](docs/public-api-candidates.md) segue a orientação
+do responsável de procurar outra Fonte sem depender de autorização direta.
+LeilôAI permite exibir seu widget com atribuição, mas a importação/retenção para
+comparação e histórico ainda não está qualificada; Tu Lugar proíbe republicar
+anúncios, e a licença Guru dos Imóveis cobre séries agregadas. Permissão pública
+suficiente dispensa parceria privada. #9/#10 permanecem abertas até comprovar
+o uso necessário e a sobreposição real.
+
 ## Banco fictício para testes
 
 Com os serviços em execução, carregue o dataset local:
