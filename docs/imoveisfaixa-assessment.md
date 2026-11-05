@@ -13,6 +13,11 @@ até dois Anúncios por mercado da mesma Fonte ILB, sem imagens, descrições ou
 contatos; sua permissão não se estende à candidata.
 [Contexto e pendências](second-source-assessment.md).
 
+Verificação direta posterior em 05/11: termos e robots responderam HTTP 200,
+mas a página anunciada de API manteve HTTP 404. Não foi encontrada concessão de
+reutilização nos termos atuais nem oferta operacional de API nesta leitura.
+Não prosseguir com integração até haver evidência nova que resolva essas lacunas.
+
 ## Evidência primária localizada e qualidade da recuperação
 
 Os resultados abaixo vieram do **índice das próprias páginas primárias**,
@@ -22,6 +27,14 @@ A abertura direta de `/api-de-dados` retornou 404, com e sem `www`;
 O índice informou atualização há dois meses para a API e há uma semana para
 termos/privacidade. Portanto, não se confirmou a vigência operacional da oferta.
 Esses erros não demonstram proibição, permissão nem inexistência do serviço.
+
+Na leitura posterior por PowerShell com identificação Placecheck, `/termos`
+respondeu HTTP 200. Seu texto confirma IB Labs, origem dos dados na CAIXA,
+ausência de vínculo/intermediação, links de compra e possível desatualização;
+não acrescenta concessão de reutilização, retenção, comparação ou histórico.
+Os links da página não apresentaram documentação de API alternativa. A chamada
+direta de `/api-de-dados` continuou retornando HTTP 404. Nenhum endpoint de dados,
+login ou cadastro foi utilizado.
 
 Os [termos indexados](https://www.imoveisfaixa.com.br/termos) identificam a
 marca como pertencente à **IB Labs**, agregadora do que a CAIXA publica, sem
@@ -34,8 +47,11 @@ Não se comprovou razão social/CNPJ nem autoridade contratual para sublicenciar
 todos os dados; o domínio e a autodeclaração da marca não resolvem isso.
 
 O [robots.txt recuperado](https://www.imoveisfaixa.com.br/robots.txt) contém
-`User-agent: *` e `Disallow:` vazio, mas a ferramenta indica captura antiga
-(há 1,6 ano). Não valida política atual nem concede licença de armazenamento.
+`User-agent: *` e `Disallow:` vazio na captura antiga do índice (há 1,6 ano).
+A consulta direta posterior retornou HTTP 200 com `Allow: /` e `Disallow: /api/`,
+`/conta/`, `/radar/`, `/patrocinios/` e `/status`. O documento atual substitui
+a captura antiga para esta avaliação. Não concede licença de armazenamento e
+não fundamenta rastreamento genérico das rotas bloqueadas.
 
 ## Oferta e contrato técnico anunciados, ainda não testados
 
