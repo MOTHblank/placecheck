@@ -109,13 +109,20 @@ adequados: nenhum foi **qualificado** no escopo documental examinado.
    titular/concedente, campos, modalidade de uso interno/publicação, atribuição,
    cadência, cache, retenção/histórico e procedimento de revogação/remoção.
    Este estudo não enviou mensagens nem registrou alterações no tracker.
-3. Somente após a evidência e a decisão humana, autorizar uma amostra limitada
+3. Após comprovar permissão pública suficiente no escopo delegado pelo responsável,
+   observar uma amostra limitada
    para confrontar identidade do imóvel, unidade, modalidade, preço e destino
    com a ILB nas mesmas cidades. Registrar pares efetivamente observados,
    datas de referência, divergências e limites. Não presumir pares nem definir
    unilateralmente uma quantidade como suficiente para o aceite.
 4. Com amostra e critérios aceitos, especificar o contrato e então implementar
    #10 pelo pipeline existente. A permissão de uma Fonte não se herda de outra.
+
+O responsável delegou a pesquisa e a continuação por outra Fonte que permita o
+uso sem autorização direta. Uma licença pública suficiente dispensa nova parceria
+privada ou confirmação para uma amostra dentro desse escopo. Solicitações de
+contratação, contato com terceiros ou expansão do piloto permanecem ações distintas.
+[Pesquisa posterior e permissões delimitadas](public-api-candidates.md).
 
 Para essa futura especificação, ainda faltam evidências próprias da candidata:
 

@@ -5,7 +5,7 @@ Escopo: qualificar a candidata, sem cadastro, contratação, contato ou coleta.
 
 ## Resultado
 
-**Candidata plausível para diligência humana; ainda não qualificada para #9.**
+**Candidata plausível para diligência documental; ainda não qualificada para #9.**
 Não foram comprovados permissão aplicável ao Placecheck, amostra autorizada
 nem sobreposição observada suficiente. A pesquisa não desbloqueia #10.
 O recorte vigente continua interno, venda em Salvador/BA e Campinas/SP,
@@ -73,16 +73,20 @@ isso na amostra; divergência de captura não demonstra oportunidade comercial.
 Não foram contados pares, consultados IDs reais nem afirmada cobertura atual
 das duas cidades. Exemplo de documentação não equivale a Anúncio observado.
 
-## Ação humana concreta
+## Continuação conforme orientação do responsável
 
-1. Escolher se vale prosseguir e obter da IB Labs documento vigente cobrindo
-   as lacunas acima, com escopo inicial numérico/URLs e uso interno explícito.
-   Esta pesquisa não enviou mensagem nem autoriza contato futuro automaticamente.
-2. Após permissão e decisão humana, criar a chave pelo fluxo anunciado,
-   sem publicar o segredo; confirmar plano e natureza dos dados Sandbox.
+O responsável delegou procurar outra Fonte que permita o uso sem autorização
+direta. Não é obrigatório obter acordo privado se documentação pública vigente
+cobrir o uso. Esta candidata continua sem qualificação porque a oferta não pôde
+ser verificada diretamente e faltam os direitos/contrato descritos acima.
+
+1. Procurar documentação vigente cobrindo as lacunas, com escopo inicial
+   numérico/URLs e uso interno. Esta pesquisa não autoriza mensagens a terceiros.
+2. Se houver permissão suficiente, verificar acesso e natureza dos dados do
+   Sandbox antes de preparar amostra; não confundir cadastro/chave com licença.
    Não houve cadastro, chave, compra ou aceitação de termos nesta sessão.
-3. Autorizar amostra limitada nos dois mercados, registrar pares efetivos e
-   validar o aceite de #9 antes de especificar o provider de #10.
+3. Observar amostra limitada nos mercados autorizados, registrar pares efetivos
+   e validar o aceite de #9 antes de especificar o provider de #10.
 
 ## Validação e limites
 

@@ -26,8 +26,9 @@ Possíveis sources:
 O [piloto Imóveis Leilão Brasil/CAIXA](docs/ilb-pilot.md) permite buscar uma amostra
 real limitada por UF/cidade em um Compose isolado. Ele usa a API pública com
 atribuição, cache diário e Celery, distinguindo valor mínimo de preço de venda.
-Não há coleta nacional automática; descrição, imagens e histórico ficam desligados,
-e capturas parciais não inativam ausências. O aceite operacional da #8 segue pendente.
+Não há coleta nacional automática; descrição e imagens ficam desligadas. O piloto
+legado também desliga histórico por padrão; o conjunto abaixo o habilita no escopo
+confirmado. Capturas parciais não inativam ausências. O aceite da #8 segue pendente.
 
 ```bash
 docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml up -d --build --wait
@@ -58,12 +59,13 @@ mudança passou no stack controlado, mas não substitui essa evidência.
 
 Os insumos e a decisão humana da [#7](https://github.com/MOTHblank/placecheck/issues/7)
 foram concluídos para esse escopo interno. A implementação está no
-[PR #20](https://github.com/MOTHblank/placecheck/pull/20). A confirmação não
+[PR #20](https://github.com/MOTHblank/placecheck/pull/20), com correções integradas
+no [PR #21](https://github.com/MOTHblank/placecheck/pull/21). A confirmação não
 identifica uma segunda Fonte para #9/#10.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.
-Validação da integração: 101 testes backend, seis regressões Playwright,
+Validação inicial da integração (baseline anterior ao conjunto): 101 testes backend, seis regressões Playwright,
 Django check/migrations, build
 TypeScript/Vite e smoke do piloto em desktop/celular; captura real agendada e 302
 para a ficha CAIXA observados. Isso não substitui o aceite real completo de #8.
@@ -75,8 +77,8 @@ entre Fontes nem busca conjunta entre os recortes. Passaram 33 regressões ILB e
 o smoke real Chromium em desktop/celular em ambos os recortes. A retirada pública
 também foi verificada e restaurada. O [aceite por critério](docs/ilb-pilot.md#revalidação-e-aceite-por-critério--04112026)
 e a [revisão do contrato publicado](docs/ilb-contract-review.md) distinguem entregas
-e pendências: a permissão pública já fundamenta o piloto; histórico/retenção e
-escopo final dos mercados ainda impedem o aceite integral de #7/#8.
+e pendências daquela data. Histórico/retenção e mercados foram confirmados em
+05/11 e a #7 foi encerrada; na #8 falta observar mudança real de preço.
 Foi corrigido também o deslocamento de um dia da data do inventário na tabela
 comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
 ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.
@@ -86,8 +88,7 @@ a captura parcial: consulta somente anúncios conhecidos sem captura recente,
 em lotes de até dez, com cadência diária e o rate limit da Fonte. Apenas o 404
 JSON validado do detalhe pode inativar uma oferta; falhas preservam os dados.
 O último resultado fica no admin de ingestão, sem guardar preço ou corpo HTTP.
-Histórico/retenção e escopo final dos mercados continuam pendentes em #7/#8.
-Validação: 189 testes backend/PostgreSQL, Django check/migrations e smoke real
+Validação anterior ao conjunto: 189 testes backend/PostgreSQL, Django check/migrations e smoke real
 desktop/celular passaram. Beat → Redis → worker confirmou a ausência de um anúncio
 antigo e o retirou da busca/detalhe/redirect, preservando duas ofertas e a última
 captura. As [duas revisões e a correção de transporte](docs/ilb-availability-review.md)
@@ -122,6 +123,12 @@ comparação e histórico ainda não está qualificada; Tu Lugar proíbe republi
 anúncios, e a licença Guru dos Imóveis cobre séries agregadas. Permissão pública
 suficiente dispensa parceria privada. #9/#10 permanecem abertas até comprovar
 o uso necessário e a sobreposição real.
+
+A [pesquisa complementar de feeds](docs/permitted-feed-search.md) encontrou no
+PNCP permissão geral de reutilização. Uma consulta limitada à CAIXA retornou dez
+contratações de serviços/tecnologia, sem ofertas imobiliárias identificadas;
+não comprova sobreposição. Hasta licencia relatórios, enquanto os documentos
+de Katular e Pro Leilão examinados não qualificaram a importação pretendida.
 
 ## Banco fictício para testes
 
