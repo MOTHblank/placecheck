@@ -140,7 +140,7 @@ def test_api_transient_errors_are_retryable_and_sanitized(failure):
             ImoveisLeilaoBrasilClient().search(uf="BA", city="salvador", limit=2)
 
 
-@pytest.mark.parametrize("response", [b"<html>blocked</html>", b"x" * 1_048_577])
+@pytest.mark.parametrize("response", [b"<html>blocked</html>", b"x" * 1_048_577], ids=["html", "oversized"])
 def test_api_invalid_or_oversized_response_is_not_empty_inventory(response):
     with patch("urllib.request.OpenerDirector.open", return_value=BytesIO(response)):
         with pytest.raises(ValueError):

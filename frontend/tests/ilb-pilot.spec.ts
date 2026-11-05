@@ -22,7 +22,11 @@ test("ILB real inventory supports search, attribution and the official redirect"
     expect(offer.source_url).toBe("https://www.imoveisleilaobrasil.com.br/api");
     expect(offer.attribution_text).toContain("CAIXA");
     expect(offer.source_inventory_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(offer.price_history).toEqual([]);
+    if (process.env.ILB_PILOT_PRICE_HISTORY === "1") {
+      expect(offer.price_history.length).toBeGreaterThan(0);
+    } else {
+      expect(offer.price_history).toEqual([]);
+    }
     expect(offer.description).toBe("");
     expect(["minimum", "reference", "asking"]).toContain(offer.price_kind);
     expect(offer.url).toMatch(/^https:\/\/venda-imoveis\.caixa\.gov\.br\/sistema\/detalhe-imovel\.asp\?hdnimovel=\d{5,20}$/);
@@ -34,7 +38,11 @@ test("ILB real inventory supports search, attribution and the official redirect"
   await expect(dialog.getByText(/Lista de origem:/).first()).toBeVisible();
   const inventoryDate = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(detail.listings[0].source_inventory_date));
   await expect(dialog.getByRole("row", { name: /Inventário da fonte/ }).first()).toContainText(inventoryDate);
-  await expect(dialog.getByText("Histórico de preços", { exact: true })).toHaveCount(0);
+  if (process.env.ILB_PILOT_PRICE_HISTORY === "1") {
+    await expect(dialog.getByText("Histórico de preços", { exact: true }).first()).toBeVisible();
+  } else {
+    await expect(dialog.getByText("Histórico de preços", { exact: true })).toHaveCount(0);
+  }
   const link = dialog.getByRole("link", { name: /Ver anúncio original/ }).first();
   const out = await link.getAttribute("href");
   const listingId = Number(out!.match(/^\/out\/(\d+)\//)![1]);

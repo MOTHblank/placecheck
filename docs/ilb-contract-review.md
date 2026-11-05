@@ -91,3 +91,19 @@ foi implementada e executada pelo worker real, com uma ausência validada do
 catálogo e retirada pública daquela oferta. A recomendação técnica de remoção
 individual acima foi atendida; isso não cria garantia de snapshot completo nem
 resolve a interpretação/decisão de retenção do histórico de preços.
+
+## Decisão do responsável — 05/11/2026
+
+Nesta sessão, após pergunta explícita sobre mercados e interpretação de uso para
+histórico individual, o responsável confirmou a continuidade do piloto interno
+conjunto Salvador/BA e Campinas/SP e orientou verificar/reaproveitar as decisões
+implementadas. Aplicou-se essa confirmação ao uso interno de preços observados,
+com base na permissão geral acima, mantendo atribuição e sem imagens/descrições.
+Não é autorização específica adicional publicada pelo operador, nem liberação
+de publicação aberta ou identificação de segunda Fonte.
+
+O [piloto conjunto](ilb-pilot.md#inventário-conjunto-de-dois-mercados) habilita
+retenção por opção explícita. Não foi estabelecido prazo numérico: vale enquanto
+permitida nesse piloto; revogação remove o histórico pela regra existente da Fonte.
+Os registros de 04/11 acima descrevem a situação anterior. O aceite operacional
+com mudança real de preço ainda precisa ser demonstrado, sem fabricar preços.

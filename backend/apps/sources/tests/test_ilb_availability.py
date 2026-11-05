@@ -113,7 +113,8 @@ def test_http_failures_preserve_offers_and_record_unknown_availability(code, con
 @pytest.mark.django_db
 @override_settings(**PILOT_SETTINGS)
 @pytest.mark.parametrize("body", [b"null", b"[]", b"<html>blocked</html>", b"x" * 1_048_577,
-    json.dumps(api_item(id="9999999999999")).encode(), json.dumps(api_item(uf="SP")).encode()])
+    json.dumps(api_item(id="9999999999999")).encode(), json.dumps(api_item(uf="SP")).encode()],
+    ids=["null", "array", "html", "oversized", "wrong-id", "wrong-state"])
 def test_malformed_or_incompatible_success_is_not_evidence_of_absence(body):
     from apps.sources.tasks import check_ilb_listing_availability
 

@@ -50,6 +50,8 @@ def sync_source(self, source_id: int) -> int:
     provider = build_provider(source)
     try:
         references = list(dict.fromkeys(provider.discover()))
+    except SourceRateLimitExceeded as error:
+        raise self.retry(exc=error, countdown=60, max_retries=None)
     except (TimeoutError, ConnectionError) as error:
         raise ProviderTemporaryError() from error
     if not all(isinstance(reference, str) and reference.strip() for reference in references):

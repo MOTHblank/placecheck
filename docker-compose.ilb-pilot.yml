@@ -8,6 +8,8 @@ services:
       ANALYTICS_EXCLUDE_ALL: "1"
       ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
       ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
+      ILB_PILOT_MARKETS: ${ILB_PILOT_MARKETS:-}
+      ILB_PILOT_PRICE_HISTORY: ${ILB_PILOT_PRICE_HISTORY:-0}
       ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
@@ -21,6 +23,8 @@ services:
       ANALYTICS_EXCLUDE_ALL: "1"
       ILB_PILOT_UF: ${ILB_PILOT_UF:-BA}
       ILB_PILOT_CITY: ${ILB_PILOT_CITY:-salvador}
+      ILB_PILOT_MARKETS: ${ILB_PILOT_MARKETS:-}
+      ILB_PILOT_PRICE_HISTORY: ${ILB_PILOT_PRICE_HISTORY:-0}
       ILB_PILOT_LIMIT: ${ILB_PILOT_LIMIT:-2}
   celery-beat:
     command: celery -A config beat --loglevel=info --schedule=/tmp/ilb-pilot-celerybeat
