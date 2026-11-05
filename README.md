@@ -51,6 +51,11 @@ configuração Compose passaram. O Docker Desktop falhou ao iniciar por erro no
 socket `dockerInference`; o aceite do novo inventário com Beat/Redis/worker e
 navegador reais continua pendente. Consulte o guia para distinguir essa validação
 das evidências anteriores dos pilotos separados.
+
+Os insumos e a decisão humana da [#7](https://github.com/MOTHblank/placecheck/issues/7)
+foram concluídos para esse escopo interno. A implementação está no
+[PR #20](https://github.com/MOTHblank/placecheck/pull/20), em draft até o aceite
+operacional da #8. A confirmação não identifica uma segunda Fonte para #9/#10.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.
@@ -307,7 +312,7 @@ do redirect para evitar contato externo. Screenshots/traces ficam em
 http://localhost:15173/api/properties/. Use `down` com os mesmos argumentos para
 parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 
-Continuam pendentes as autorizações #7/#9, integrações reais #8/#10,
+Continuam pendentes a segunda autorização #9, aceites das integrações reais #8/#10,
 aceite real integrado #14. Não há alegação
 de MVP integralmente concluído nem alteração da spec pai #1.
 As duas revisões independentes e suas correções estão em
