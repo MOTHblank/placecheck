@@ -110,6 +110,11 @@ VendasGov. Nenhuma segunda Fonte com permissão e sobreposição suficientes foi
 comprovada. CAIXA e ILB compartilham a proveniência; dois canais da mesma oferta
 não comprovam condições comerciais independentes. #9/#10 continuam pendentes.
 
+A [qualificação da ImóveisFaixa](docs/imoveisfaixa-assessment.md) registra outra
+candidata com API anunciada para portais, mas ainda sem permissão e contrato
+verificados. A documentação indexada e as falhas de abertura direta são
+distintas; nenhuma chave, assinatura ou coleta foi iniciada.
+
 ## Banco fictício para testes
 
 Com os serviços em execução, carregue o dataset local:
