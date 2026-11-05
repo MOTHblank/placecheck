@@ -4,7 +4,30 @@ import json
 from pathlib import Path
 
 from .manual import ManualProvider
-from .imoveis_leilao_brasil import SOURCE_SLUG, ImoveisLeilaoBrasilProvider
+from .imoveis_leilao_brasil import SOURCE_SLUG, ImoveisLeilaoBrasilMarketsProvider, ImoveisLeilaoBrasilProvider
+from apps.ingestion.limits import check_source_rate_limit
+
+
+def configured_ilb_provider(source=None):
+    configured = getattr(settings, "ILB_PILOT_MARKETS", "")
+    if not isinstance(configured, str):
+        raise ValueError("ILB_PILOT_MARKETS deve ser uma lista textual UF:cidade.")
+    if configured.strip():
+        entries = [entry.strip().split(":") for entry in configured.split(",")]
+        if not 1 <= len(entries) <= 2 or any(len(entry) != 2 for entry in entries):
+            raise ValueError("Configure de um a dois mercados ILB como UF:cidade.")
+        providers = [ImoveisLeilaoBrasilProvider(uf=uf.strip(), city=city.strip(), limit=settings.ILB_PILOT_LIMIT)
+                     for uf, city in entries]
+    else:
+        providers = [ImoveisLeilaoBrasilProvider(uf=settings.ILB_PILOT_UF, city=settings.ILB_PILOT_CITY,
+                                               limit=settings.ILB_PILOT_LIMIT)]
+    if source and source.rate_limit_per_minute < len(providers):
+        raise ValueError("Rate limit da Fonte deve comportar os mercados da descoberta.")
+    provider = providers[0] if len(providers) == 1 else ImoveisLeilaoBrasilMarketsProvider(providers,
+        additional_request_budget=(lambda: check_source_rate_limit(source)) if source else None)
+    if len(provider.collection_scope) > 150:
+        raise ValueError("Recorte ILB excede o tamanho permitido de collection_scope.")
+    return provider
 
 
 def build_provider(source):
@@ -12,10 +35,13 @@ def build_provider(source):
     if source.slug == SOURCE_SLUG:
         if not settings.DEBUG or not settings.ILB_PILOT_ENABLED or source.provider_type != source.ProviderType.API:
             raise ImproperlyConfigured("Piloto ILB disponível somente no ambiente interno explicitamente habilitado.")
-        if source.collection_scope != f"{settings.ILB_PILOT_UF.upper()}:{settings.ILB_PILOT_CITY}":
+        try:
+            provider = configured_ilb_provider(source)
+        except ValueError as error:
+            raise ImproperlyConfigured(str(error)) from error
+        if source.collection_scope != provider.collection_scope:
             raise ImproperlyConfigured("Recorte ILB mudou; use outro stack isolado para o novo recorte.")
-        return ImoveisLeilaoBrasilProvider(uf=settings.ILB_PILOT_UF, city=settings.ILB_PILOT_CITY,
-                                          limit=settings.ILB_PILOT_LIMIT)
+        return provider
     if source.provider_type == source.ProviderType.MANUAL:
         records_by_source = getattr(settings, "MANUAL_PROVIDER_RECORDS", {})
         records_file = getattr(settings, "MANUAL_PROVIDER_RECORDS_FILE", "")

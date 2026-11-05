@@ -1,0 +1,17 @@
+# Same ILB source with two explicit markets. Use -p placecheck-ilb-joint.
+services:
+  backend:
+    ports: !override
+      - "127.0.0.1:28002:8000"
+    environment:
+      ILB_PILOT_MARKETS: BA:salvador,SP:campinas
+      ILB_PILOT_PRICE_HISTORY: "1"
+      ILB_PILOT_LIMIT: "2"
+  celery:
+    environment:
+      ILB_PILOT_MARKETS: BA:salvador,SP:campinas
+      ILB_PILOT_PRICE_HISTORY: "1"
+      ILB_PILOT_LIMIT: "2"
+  frontend:
+    ports: !override
+      - "127.0.0.1:25175:5173"

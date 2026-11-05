@@ -82,6 +82,75 @@ imobiliárias. A regra conservadora existente foi preservada.
 
 ## Operação local
 
+### Inventário conjunto de dois mercados
+
+O override `docker-compose.ilb-joint.yml` reúne os recortes de venda
+Salvador/BA e Campinas/SP no mesmo banco e na mesma Source ILB. O responsável
+confirmou esse piloto interno em 05/11/2026. Isso não cria uma segunda Fonte
+nem comprova comparação entre Fontes.
+
+```bash
+docker compose -p placecheck-ilb-joint -f docker-compose.yml -f docker-compose.ilb-pilot.yml -f docker-compose.ilb-joint.yml up -d --build --wait
+docker compose -p placecheck-ilb-joint -f docker-compose.yml -f docker-compose.ilb-pilot.yml -f docker-compose.ilb-joint.yml exec -T backend python manage.py setup_ilb_pilot
+```
+
+Frontend: http://127.0.0.1:25175; backend: http://127.0.0.1:28002.
+O Beat usa o intervalo padrão de 15 minutos. Não carregue fixtures de aceitação
+nesse banco. Os volumes desse projeto ficam separados dos outros pilotos.
+
+`ILB_PILOT_MARKETS=BA:salvador,SP:campinas` aceita um ou dois recortes
+explícitos, com até dois anúncios por mercado nesse override. Quando vazio,
+preserva a configuração anterior por `ILB_PILOT_UF`/`ILB_PILOT_CITY`.
+Recortes repetidos, inválidos ou mais de dois falham antes da criação da Fonte.
+A ordem é canônica: `BA:salvador|SP:campinas`. Uma Fonte existente não pode
+trocar seu escopo; use o novo projeto isolado para preservar inventários antigos.
+
+Cada mercado mantém sua captura imutável e seu cache diário. Discovery precisa
+validar ambos antes de enfileirar ofertas; falha de um mercado não publica meia
+descoberta e não inativa anúncios existentes. A segunda descoberta consome a
+mesma cota por Fonte; limite abaixo de dois é configuração inválida. Cada
+execução continua parcial, mesmo com as duas páginas vazias. Ausências são
+tratadas pela verificação individual já implementada, aceitando somente os
+mercados configurados. Retirada pública da Fonte afeta ambos os recortes.
+
+Imagens e descrições continuam desabilitadas. O responsável confirmou nesta
+sessão o piloto conjunto e o uso interno do histórico, após ser perguntado
+explicitamente sobre a interpretação de uso de preços individuais. A base é a
+permissão geral de dados com atribuição nos termos §6 e os exemplos de monitoramento
+da API; é uma decisão do responsável para o piloto, não uma nova declaração
+específica do operador. Não há autorização de publicação aberta nem segunda Fonte.
+
+O override conjunto define `ILB_PILOT_PRICE_HISTORY=1`; o padrão global permanece
+`0`. `setup_ilb_pilot` aplica essa opção a `can_retain_price_history`, reutilizando
+a persistência atômica existente: primeira captura e mudanças de valor geram
+registros; repetição não duplica. Não há reconstrução retroativa de preços.
+O histórico é retido somente enquanto permitido no piloto; não foi acordado
+prazo numérico. Desabilitar a opção e repetir o comando remove os registros e
+impede novas gravações. Retirar a publicação não apaga histórico permitido;
+para revogar a retenção, desligue também essa permissão. O smoke real desse
+override exige `ILB_PILOT_BROWSER=1 ILB_PILOT_PRICE_HISTORY=1`.
+
+As evidências anteriores em bancos separados, abaixo, continuam sendo registros
+históricos; não são prova de execução deste override.
+
+Validação em 05/11/2026: **202 testes backend passaram** em PostgreSQL 18 local
+temporário, Python 3.13, cache/broker/resultados em memória. Incluem os dois
+mercados no mesmo inventário, repetição, falha parcial, cota compartilhada,
+retirada, histórico opt-in, mudança de preço e revogação. Isso valida as regras,
+não comprova execução assíncrona real. Build TypeScript/Vite, `Django check`,
+compilação Python, descoberta dos 16 cenários Playwright e `compose config --quiet`
+passaram. Nenhuma migration nova foi detectada; a conferência de histórico de
+migrations do banco padrão não foi concluída (banco padrão indisponível).
+
+`docker compose up --build --wait` não concluiu: o Docker Desktop encerrou antes
+de criar o daemon, com erro no socket temporário `dockerInference`. Reiniciar e
+tentar renomear/remover somente esse socket não resolveu; não houve reset nem
+remoção de volumes. Ficam pendentes o Compose Python 3.12/PostgreSQL 16, a captura
+real conjunta por Beat/Redis/worker, mudança real de preço permitida e smoke de
+navegador desktop/celular desse inventário. Nenhum preço real foi modificado para
+simular aceite. Os dois testes de resposta >1 MiB receberam IDs curtos para
+evitar erros de preparação no Windows, preservando seus payloads e asserções.
+
 Requer `.env` do projeto e Docker Compose 2.24.4+ (`!override`). O override cria
 volumes próprios e expõe backend/frontend somente em `127.0.0.1`:
 

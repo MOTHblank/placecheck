@@ -2,7 +2,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.sources.models import Source
-from apps.sources.providers.imoveis_leilao_brasil import SOURCE_SLUG, ImoveisLeilaoBrasilProvider
+from apps.sources.providers.imoveis_leilao_brasil import SOURCE_SLUG
+from apps.sources.providers.registry import configured_ilb_provider
 
 
 class Command(BaseCommand):
@@ -12,11 +13,10 @@ class Command(BaseCommand):
         if not settings.DEBUG or not settings.ILB_PILOT_ENABLED:
             raise CommandError("Habilite explicitamente o piloto em um stack local isolado.")
         try:
-            ImoveisLeilaoBrasilProvider(uf=settings.ILB_PILOT_UF, city=settings.ILB_PILOT_CITY,
-                                       limit=settings.ILB_PILOT_LIMIT)
+            provider = configured_ilb_provider()
         except ValueError as error:
             raise CommandError(str(error)) from None
-        scope = f"{settings.ILB_PILOT_UF.upper()}:{settings.ILB_PILOT_CITY}"
+        scope = provider.collection_scope
         existing = Source.objects.filter(slug=SOURCE_SLUG).first()
         if existing and existing.collection_scope != scope:
             raise CommandError("Recorte existente diferente; use outro stack isolado, sem misturar inventários.")
@@ -26,7 +26,9 @@ class Command(BaseCommand):
             "collection_scope": scope,
             "attribution_text": "Dados públicos da CAIXA via Imóveis Leilão Brasil (Spartan TI). Confirme condições no edital oficial.",
             "is_active": True, "is_published": True, "is_demo": False, "rate_limit_per_minute": 30,
-            "can_store_description": False, "can_store_images": False, "can_retain_price_history": False,
+            "can_store_description": False, "can_store_images": False,
+            "can_retain_price_history": settings.ILB_PILOT_PRICE_HISTORY,
         })
-        self.stdout.write(f"Fonte {source.pk}: {settings.ILB_PILOT_UF}/{settings.ILB_PILOT_CITY}; "
-                          f"até {settings.ILB_PILOT_LIMIT} itens, captura parcial, cache diário. Sem histórico.")
+        history = "Histórico habilitado no escopo interno aprovado." if source.can_retain_price_history else "Sem histórico."
+        self.stdout.write(f"Fonte {source.pk}: {scope}; "
+                          f"até {settings.ILB_PILOT_LIMIT} itens por mercado, captura parcial, cache diário. {history}")

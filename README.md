@@ -35,6 +35,22 @@ docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.i
 ```
 
 Após o próximo ciclo do Beat (até 15 minutos), abra http://127.0.0.1:25173.
+
+Para reunir os dois mercados de venda confirmados (Salvador/BA e Campinas/SP)
+em **um inventário da mesma Fonte**, use o [piloto conjunto](docs/ilb-pilot.md#inventário-conjunto-de-dois-mercados)
+com `docker-compose.ilb-joint.yml`, projeto `placecheck-ilb-joint` e frontend
+http://127.0.0.1:25175. O escopo é explícito e imutável por Fonte; permanecem
+cache diário, capturas parciais e verificação individual de ausências. O conjunto
+habilita explicitamente o histórico interno confirmado pelo responsável, com
+revogação e remoção pela permissão da Fonte; os pilotos antigos mantêm o padrão
+desligado. Essa opção não constitui comparação entre duas Fontes.
+
+Validação do conjunto em 05/11/2026: 202 testes backend passaram no PostgreSQL
+local temporário com cache/broker em memória; build frontend, Django check e
+configuração Compose passaram. O Docker Desktop falhou ao iniciar por erro no
+socket `dockerInference`; o aceite do novo inventário com Beat/Redis/worker e
+navegador reais continua pendente. Consulte o guia para distinguir essa validação
+das evidências anteriores dos pilotos separados.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.

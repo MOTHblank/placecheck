@@ -137,6 +137,10 @@ class ImoveisLeilaoBrasilProvider(ApiProvider):
         self.uf, self.city, self.limit = uf.upper(), city, limit
         self.client = client or ImoveisLeilaoBrasilClient()
 
+    @property
+    def collection_scope(self):
+        return f"{self.uf}:{self.city}"
+
     def check_availability(self, external_id):
         item = self.client.detail(external_id)
         if item is None:
@@ -253,3 +257,55 @@ class ImoveisLeilaoBrasilProvider(ApiProvider):
                       neighborhood=neighborhood, url=url, sale_method=method, price_kind=SALE_METHODS[method])
         values["source_inventory_date"] = item.get("source_inventory_date")
         return RawListing(**values)
+
+
+class ImoveisLeilaoBrasilMarketsProvider(ApiProvider):
+    """Two explicit markets of the same origin; each snapshot remains partial."""
+
+    def __init__(self, providers, *, additional_request_budget=None):
+        self.providers = tuple(sorted(providers, key=lambda provider: provider.collection_scope))
+        if len(self.providers) != 2 or len({provider.collection_scope for provider in self.providers}) != 2:
+            raise ValueError("Configure dois mercados ILB distintos.")
+        self.additional_request_budget = additional_request_budget
+
+    @property
+    def collection_scope(self):
+        return "|".join(provider.collection_scope for provider in self.providers)
+
+    def discover(self):
+        references, external_ids = [], set()
+        for index, provider in enumerate(self.providers):
+            if index and self.additional_request_budget:
+                self.additional_request_budget()
+            for reference in provider.discover():
+                external_id = reference.rsplit(":", 1)[-1]
+                if external_id in external_ids:
+                    raise ValueError("Mesmo ID ILB apareceu em mercados diferentes.")
+                external_ids.add(external_id)
+                references.append(reference)
+        return references
+
+    def fetch(self, reference):
+        for provider in self.providers:
+            try:
+                return provider.fetch(reference)
+            except ValueError:
+                continue
+        raise ValueError("Captura ILB indisponível ou fora dos mercados configurados.")
+
+    def parse(self, item):
+        if not isinstance(item, dict) or not isinstance(item.get("cidade"), str):
+            raise ValueError("Anúncio ILB inválido.")
+        for provider in self.providers:
+            if item.get("uf") == provider.uf and _slug(item["cidade"]) == provider.city:
+                return provider.parse(item)
+        raise ValueError("Anúncio ILB fora dos mercados configurados.")
+
+    def check_availability(self, external_id):
+        item = self.providers[0].client.detail(external_id)
+        if item is None:
+            return False
+        raw = self.parse(item)
+        if raw.source_external_id != external_id:
+            raise ValueError("Detalhe ILB pertence a outro ID.")
+        return True

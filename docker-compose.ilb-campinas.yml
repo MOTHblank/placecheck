@@ -7,11 +7,13 @@ services:
     environment:
       ILB_PILOT_UF: SP
       ILB_PILOT_CITY: campinas
+      ILB_PILOT_MARKETS: ""
       ILB_PILOT_LIMIT: "2"
   celery:
     environment:
       ILB_PILOT_UF: SP
       ILB_PILOT_CITY: campinas
+      ILB_PILOT_MARKETS: ""
       ILB_PILOT_LIMIT: "2"
   frontend:
     ports: !override
