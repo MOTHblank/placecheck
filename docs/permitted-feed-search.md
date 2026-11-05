@@ -3,9 +3,9 @@
 Consulta em 05/11/2026. Escopo: uma **nova** fonte brasileira de ofertas de venda,
 com permissão geral publicada para integração, sem cadastro, pagamento ou contato
 com operador; preferencialmente Salvador/BA ou Campinas/SP e imóvel também
-presente na fonte ILB/CAIXA. Pesquisa documental; nenhum catálogo individual foi
+presente na fonte ILB/CAIXA. Pesquisa documental; nenhum catálogo individual
 de anúncios imobiliários foi coletado e nenhum provider foi implementado.
-Uma página de contratações públicas foi consultada conforme descrito abaixo.
+Duas páginas de contratações públicas foram consultadas conforme descrito abaixo.
 
 ## Resultado
 
@@ -55,7 +55,7 @@ localização física de cada lote. O [Swagger oficial](https://pncp.gov.br/api/
 identifica o endpoint de propostas abertas e o serviço de detalhe por
 órgão/ano/sequencial. A página carregou sem conteúdo textual extraível.
 
-Após confirmar a permissão geral, foi tentada apenas esta consulta filtrada:
+Após confirmar a permissão geral, foi consultado este recorte em duas páginas:
 
 ```text
 GET https://pncp.gov.br/api/consulta/v1/contratacoes/proposta?dataFinal=20261231&cnpj=00360305000104&pagina=1&tamanhoPagina=10
@@ -70,11 +70,19 @@ identificada. A menção a Campinas no registro `00360305000104-1-000845/2026`
 era abrangência de instalação de ar-condicionado, não localização de imóvel à venda.
 `linkSistemaOrigem` veio nulo nos dez registros. Não houve consulta aos anexos.
 
-Isso não exclui ofertas em outros registros ou períodos e não comprova pares com
-ILB. A tentativa de consultar a segunda página não foi executada: a revisão
-automática de aprovação falhou por limite de uso, sem avaliar a segurança da ação.
-Não houve contorno desse controle. Restam seis registros não examinados dessa
-resposta; não há amostra suficiente para aprovar um provider ou alegar sobreposição.
+A primeira tentativa de consultar a segunda página não foi executada por falha
+da revisão automática (limite de uso). Em continuação posterior, a mesma consulta
+com `pagina=2` foi autorizada e retornou HTTP 200 com os seis registros restantes.
+Seus objetos também eram serviços: transporte/custódia de valores, auditoria e
+engenharia. `linkSistemaOrigem` veio nulo nos seis. Foram assim examinados os
+objetos dos 16 registros desse resultado, sem oferta imobiliária identificada.
+Nenhum anexo foi acessado e nenhum registro foi importado no Placecheck.
+
+**Conclusão do recorte:** os 16 registros de propostas abertas CAIXA retornados
+pela consulta não forneceram uma segunda oferta de imóvel para o piloto. Isso
+não exclui ofertas em outros períodos/órgãos ou outros canais da CAIXA; não há
+amostra suficiente para aprovar um provider ou alegar sobreposição com ILB.
+Não repetir esta busca sem novo indício de catálogo imobiliário compatível.
 
 ## Hasta — licença aberta restrita a relatórios
 
@@ -129,5 +137,5 @@ comparação no MVP; nenhum arquivo de transações foi baixado.
 Esta nota não substitui as avaliações anteriores de LeilôAI, LanceMapa,
 ImóveisFaixa, TuLugar ou Guru. Não foram repetidas suas consultas individuais.
 Validação realizada: leitura de documentação e termos primários e uma página da
-API oficial, sem mudança no stack, sem ingestão, sem contas criadas e sem contato externo. Testes de aplicação
+API oficial (duas páginas), sem mudança no stack, sem ingestão, sem contas criadas e sem contato externo. Testes de aplicação
 e Docker não se aplicam à inclusão desta nota documental.

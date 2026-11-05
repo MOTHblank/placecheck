@@ -128,10 +128,13 @@ suficiente dispensa parceria privada. #9/#10 permanecem abertas até comprovar
 o uso necessário e a sobreposição real.
 
 A [pesquisa complementar de feeds](docs/permitted-feed-search.md) encontrou no
-PNCP permissão geral de reutilização. Uma consulta limitada à CAIXA retornou dez
+PNCP permissão geral de reutilização. Uma consulta limitada à CAIXA retornou 16
 contratações de serviços/tecnologia, sem ofertas imobiliárias identificadas;
 não comprova sobreposição. Hasta licencia relatórios, enquanto os documentos
 de Katular e Pro Leilão examinados não qualificaram a importação pretendida.
+
+O [Leilão Index](docs/leilaoindex-assessment.md) anuncia API ainda em breve;
+não há contrato operacional disponível nem integração qualificada nesta pesquisa.
 
 ## Banco fictício para testes
 
