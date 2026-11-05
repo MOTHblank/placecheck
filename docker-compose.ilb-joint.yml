@@ -5,12 +5,12 @@ services:
       - "127.0.0.1:28002:8000"
     environment:
       ILB_PILOT_MARKETS: BA:salvador,SP:campinas
-      ILB_PILOT_PRICE_HISTORY: "1"
+      ILB_PILOT_PRICE_HISTORY: ${ILB_JOINT_PRICE_HISTORY:-1}
       ILB_PILOT_LIMIT: "2"
   celery:
     environment:
       ILB_PILOT_MARKETS: BA:salvador,SP:campinas
-      ILB_PILOT_PRICE_HISTORY: "1"
+      ILB_PILOT_PRICE_HISTORY: ${ILB_JOINT_PRICE_HISTORY:-1}
       ILB_PILOT_LIMIT: "2"
   frontend:
     ports: !override
