@@ -1,6 +1,37 @@
 # VRSync como entrada autorizada do Placecheck
 
-Pesquisa para o ticket #15, em 31/10/2026. **Recomendação: adiar a integração real até #7 confirmar parceiro, permissão e amostra.** VRSync é uma alternativa viável para investigar em #8; não há evidência de um feed disponível ou autorizado ao Placecheck. Este documento não cria provider, schema, migração, credenciais, coleta ou teste executável.
+Pesquisa inicial para o ticket #15, em 31/10/2026, concluída com a decisão registrada em 05/11/2026: **usar a API JSON ILB para a primeira Fonte e adiar VRSync**. A primeira Fonte já foi escolhida e autorizada no escopo interno da #7, com implementação nos PRs #20/#21. Não há feed VRSync autorizado nem compatibilidade real XML comprovada. Este estudo não cria parser, credenciais ou coleta XML.
+
+## Decisão de formato — 05/11/2026
+
+A pergunta da #15 permite escolher um provider VRSync específico, CSV/JSON/API ou
+adiar. Para a primeira Fonte escolhida, a API JSON ILB já entrega o contrato
+necessário e tem permissão pública de uso dos dados com atribuição, aplicada ao
+recorte interno aprovado. A captura real e o histórico inicial em Salvador/BA e
+Campinas/SP estão documentados no [aceite conjunto](ilb-joint-acceptance.md).
+Referências: [decisão humana da #7](https://github.com/MOTHblank/placecheck/issues/7),
+[API publicada](https://www.imoveisleilaobrasil.com.br/api) e
+[contrato de uso revisado](ilb-contract-review.md).
+
+| Entregável do estudo | Resultado |
+| --- | --- |
+| Matriz com evidência identificada | Tabelas e fixture sintética abaixo: campos, ausências, enums, URLs, preços, períodos, `Sale/Rent`, privacidade e snapshots. Não é uma amostra de parceiro. |
+| Escolha com razões e custo | Usar o provider JSON ILB existente. XML acrescentaria parser seguro, perfil do parceiro, expansão de modalidades e snapshot sem resolver uma necessidade da Fonte escolhida. |
+| Encaminhamento para a primeira integração | A #8 usa o contrato ILB registrado na #7; PRs #20/#21 foram integrados. O aceite real de mudança de preço ainda pertence à #8. |
+| Limites do estudo | Não fornece autorização XML, não coleta feeds de terceiros e não afirma comparação real ou MVP concluído. |
+
+Assim se conclui **o estudo e a escolha de formato para a primeira Fonte**, sem
+afirmar compatibilidade VRSync real. As perguntas condicionais de licença,
+amostra, namespace, completude e frequência de um parceiro XML continuam
+obrigatórias **se uma futura Fonte fornecer VRSync**. Elas não bloqueiam a opção
+JSON escolhida e não são marcadas como comprovadas. Uma futura integração XML
+precisará de ticket com Fonte e amostra autorizadas, respeitando o máximo de duas
+Fontes do piloto; não se amplia a #8 silenciosamente.
+
+O restante preserva a investigação técnica de 31/10. Suas propostas de adaptação
+VRSync não são trabalho solicitado para o provider JSON atual. A existência de
+exemplos oficiais de XML continua sendo evidência de formato, não de licença de
+anúncios: [exemplos Grupo ZAP](https://developers.grupozap.com/feeds/vrsync/examples.html).
 
 ## Evidências e limites
 
@@ -8,7 +39,7 @@ Pesquisa para o ticket #15, em 31/10/2026. **Recomendação: adiar a integraçã
 - **Verificado sobre Imobzi:** o produto permite configurar integrações, escolher imóveis/filtros e obter uma URL XML atualizada periodicamente. Não se deve presumir que a carteira inteira esteja nesse arquivo, nem que a frequência satisfaça o piloto. [Ajuda de publicação](https://help.imobzi.com/imobiliarias/support/solutions/articles/156000386836).
 - **Verificado, com escopo restrito:** o artigo da integração Lais informa que a integração Viva Real gera XML VRSync. Isso demonstra uma possibilidade técnica naquele fluxo; não comprova o formato de toda exportação Imobzi nem acesso concedido ao Placecheck. O caminho terminado em `create_ticket` fornecido na pesquisa retorna esse artigo; nenhum chamado foi criado. [Ajuda Lais](https://help.imobzi.com/imobiliarias/support/solutions/articles/156000387167/create_ticket).
 - **Não verificado:** parceiro concreto, contrato, preço comercial, URL, autenticação, dialecto efetivamente exportado, qualidade dos dados, completude, cidades, modalidades e volumes. Não foram consultados feeds de clientes nem contatados fornecedores.
-- **Verificado no repositório:** há pipeline e provider manual; `XmlFeedProvider` é uma classe abstrata sem parsing, e o registry só constrói `ManualProvider`. As Sprints 1–7 possuem implementação; esta pesquisa não altera seus critérios de aceite nem resolve a fonte real pendente. [Contrato](../backend/apps/sources/providers/base.py), [registry](../backend/apps/sources/providers/registry.py), [README](../README.md).
+- **Estado inicial em 31/10:** havia pipeline e provider manual. **Estado atual:** o registry também constrói o provider ILB JSON e sua composição de dois mercados. `XmlFeedProvider` continua abstrato e sem parsing. A escolha de JSON não implementa nenhuma das propostas XML abaixo. [Contrato](../backend/apps/sources/providers/base.py), [registry](../backend/apps/sources/providers/registry.py), [README](../README.md).
 
 As tabelas distinguem regras oficiais resumidas, contrato local atual e **propostas futuras**, que exigem decisão e testes em #8. Não equivalem a uma certificação de conformidade integral com o XSD. Não se carregou o XSD remoto.
 
@@ -150,11 +181,18 @@ Checklist para o responsável por #7, **sem contato realizado nesta pesquisa**:
 5. Confirmar se o arquivo é total ou parcial dentro de quais filtros, como versionar uma captura, distinguir vazio legítimo de erro e refletir exclusões; obter regra para revogar direitos e retirar dados já retidos.
 6. Usar essas respostas para fechar em #8 o perfil estrito, identidade por modalidade/proveniência, períodos, semântica de área, privacidade e armazenamento imutável. Só então implementar e executar testes sintéticos, testes da ingestão/Celery e aceite com a fonte autorizada.
 
-**Validação desta entrega:** inspeção de código e documentação primária;
+**Validação histórica de 31/10:** inspeção de código e documentação primária;
 `docker compose exec -T backend pytest -q` passou com 68 testes (dois avisos de
 depreciação Django), e `docker compose exec -T frontend npm run build` passou
 com TypeScript/Vite. Nenhum parser ou teste executável VRSync foi implementado;
 os casos da tabela são expectativas. Não houve acesso a feed de parceiro ou
 repetição do bootstrap, pois a alteração é documental. A compatibilidade real
-permanece condicionada à amostra e às decisões acima. #15 permanece aberto;
+permanece condicionada à amostra e às decisões acima. A #15 permanecia aberta nessa data;
 não substitui a autorização de #7, a implementação de #8 ou o aceite integrado.
+
+**Validação da conclusão em 05/11:** decisão confrontada com #7, registry atual,
+documentação oficial de exemplos VRSync/API ILB e evidências dos PRs #20/#21.
+Mudança documental: não se repetiram pytest, build ou bootstrap; os 211 testes e
+smokes do [aceite conjunto](ilb-joint-acceptance.md) são evidência anterior da
+implementação JSON, não testes de um parser XML. Não houve download de feed real,
+cadastro de Fonte ou alteração do piloto nesta conclusão.

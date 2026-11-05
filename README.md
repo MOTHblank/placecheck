@@ -96,13 +96,19 @@ estão documentadas; capturas continuam parciais.
 ### Estudo de entrada VRSync (#15)
 
 A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta
-documentação oficial, exemplos sintéticos e o pipeline atual. A recomendação é
-adiar a integração até a autorização e amostra do parceiro (#7); VRSync permanece
-uma opção para um provider específico em #8. O estudo detalha modalidades
+documentação oficial, exemplos sintéticos e o pipeline atual. A decisão do estudo
+é usar a API JSON ILB para a primeira Fonte e adiar VRSync. O estudo detalha modalidades
 venda/aluguel, periodicidade de preços e IPTU, privacidade e snapshots completos.
 Não há provider XML concreto, feed real configurado ou compatibilidade real
-comprovada. Associação de duas modalidades da mesma Fonte e compartilhamento de
-snapshot entre tasks exigem trabalho explícito em #8.
+comprovada. Uma futura Fonte VRSync precisará de autorização, amostra e ticket
+próprios para modalidades, privacidade e snapshots; não amplia o provider JSON da #8.
+
+### Pesquisa da segunda Fonte (#9)
+
+A [avaliação documental](docs/second-source-assessment.md) examina CAIXA direta e
+VendasGov. Nenhuma segunda Fonte com permissão e sobreposição suficientes foi
+comprovada. CAIXA e ILB compartilham a proveniência; dois canais da mesma oferta
+não comprovam condições comerciais independentes. #9/#10 continuam pendentes.
 
 ## Banco fictício para testes
 
