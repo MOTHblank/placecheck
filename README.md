@@ -28,7 +28,8 @@ real limitada por UF/cidade em um Compose isolado. Ele usa a API pública com
 atribuição, cache diário e Celery, distinguindo valor mínimo de preço de venda.
 Não há coleta nacional automática; descrição e imagens ficam desligadas. O piloto
 legado também desliga histórico por padrão; o conjunto abaixo o habilita no escopo
-confirmado. Capturas parciais não inativam ausências. O aceite da #8 segue pendente.
+confirmado. Capturas parciais não inativam ausências. A #8 foi aceita pelo
+responsável em 05/11/2026, dispensando esperar uma variação natural de preço.
 
 ```bash
 docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml up -d --build --wait
@@ -54,8 +55,10 @@ das duas cidades em desktop/celular. Beat → Redis → worker importou e repeti
 quatro ofertas, preservando quatro registros iniciais de preço. A instalação
 limpa revelou incompatibilidade Kombu/Redis, corrigida fixando o transporte já
 transitivo. Consulte [as evidências, a revisão e a revogação](docs/ilb-joint-acceptance.md).
-Falta observar mudança de preço na Fonte real para concluir #8; o ciclo com
-mudança passou no stack controlado, mas não substitui essa evidência.
+O responsável aceitou a #8 com essa operação real e o ciclo de mudança validado
+no stack controlado, dispensando aguardar variação natural na Fonte. Nenhuma
+mudança real de preço foi observada; as verificações específicas dessa pendência
+foram encerradas. A sincronização normal do piloto permanece configurada.
 
 Os insumos e a decisão humana da [#7](https://github.com/MOTHblank/placecheck/issues/7)
 foram concluídos para esse escopo interno. A implementação está no
@@ -78,7 +81,7 @@ o smoke real Chromium em desktop/celular em ambos os recortes. A retirada públi
 também foi verificada e restaurada. O [aceite por critério](docs/ilb-pilot.md#revalidação-e-aceite-por-critério--04112026)
 e a [revisão do contrato publicado](docs/ilb-contract-review.md) distinguem entregas
 e pendências daquela data. Histórico/retenção e mercados foram confirmados em
-05/11 e a #7 foi encerrada; na #8 falta observar mudança real de preço.
+05/11 e a #7 foi encerrada; a #8 também foi aceita conforme a decisão acima.
 Foi corrigido também o deslocamento de um dia da data do inventário na tabela
 comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
 ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.

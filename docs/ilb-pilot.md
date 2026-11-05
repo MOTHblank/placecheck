@@ -2,12 +2,14 @@
 
 Implementação interna em 31/10/2026, a partir da solução registrada pelo responsável
 em [#7](https://github.com/MOTHblank/placecheck/issues/7#issuecomment-6539495357).
-Este piloto exercita o início de #8; não conclui as autorizações de #7 ou o aceite
-real completo de #8/#14. Não é parceria com a CAIXA ou com o operador da API.
+O registro inicial abaixo descreve o início de #8; o estado atual foi atualizado
+em 05/11/2026. Não é parceria com a CAIXA ou com o operador da API.
 
-Estado atual: escopo interno da #7 concluído; inventário conjunto em execução.
+Estado atual: #7 concluída; #8 aceita pelo responsável, que dispensou esperar
+variação natural de preço e encerrou suas verificações específicas. O inventário
+conjunto continua em execução. #14 mantém o aceite integrado restante.
 Veja o [aceite de 05/11/2026](ilb-joint-acceptance.md) para as evidências reais,
-correções da revisão, revogação e o critério de mudança real de preço ainda pendente.
+correções da revisão, revogação e a decisão de aceite sem variação real observada.
 
 ## Base de uso e recorte
 
