@@ -1,6 +1,8 @@
 Django==5.1.12
 djangorestframework==3.15.2
 celery==5.4.0
+# Keep the Redis transport compatible with the pinned redis-py client.
+kombu[redis]==5.4.2
 redis==5.2.1
 psycopg[binary]==3.2.9
 pytest==8.3.5
