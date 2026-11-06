@@ -114,7 +114,9 @@ espera pela variação real; não a transforma em evidência observada. Não ser
 feitas novas verificações específicas para essa pendência. A sincronização normal
 do piloto e o registro de mudanças quando ocorrerem permanecem configurados.
 Remoção individual real foi comprovada no
-PR #19. Duas páginas não comprovam snapshot completo. #9/#10 dependem de segunda
-Fonte autorizada e sobreposta; #14 depende desses aceites. Nenhum preço real foi
+PR #19. Duas páginas não comprovam snapshot completo. Posteriormente, o responsável
+escolheu concluir o piloto com ILB e adiar a comparação: #9/#10 ficam para outra
+etapa; #14 avalia o [piloto de fonte única](single-source-pilot-acceptance.md).
+Nenhum preço real foi
 alterado ou inventado para fechar issue. O estudo VRSync #15 não constitui amostra
 autorizada nem provider XML.

@@ -2,6 +2,17 @@
 
 MVP de um buscador e agregador de anúncios imobiliários. O projeto segue o plano em [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) e começa como um monólito Django modular.
 
+## Escopo do piloto confirmado em 05/11/2026
+
+O responsável escolheu concluir o piloto interno com a **ILB como única Fonte**,
+nos mercados de venda Salvador/BA e Campinas/SP, e adiar a comparação entre
+Fontes. #7/#8 estão concluídas; #9/#10 permanecem abertas como adiadas, sem nova
+pesquisa ou integração nesta entrega. O aceite da #14 foi validado com 211 testes
+backend, 14 cenários gerais de navegador, quatro smokes reais, build e Compose.
+A spec pai #1 e a definição original de MVP multifuentes são
+preservadas; não há deploy público nem comparação real entre Fontes demonstrada.
+Consulte [o aceite do piloto de fonte única](docs/single-source-pilot-acceptance.md).
+
 ## Desenvolvimento local
 
 1. Copie `.env.example` para `.env`.
@@ -107,12 +118,13 @@ Não há provider XML concreto, feed real configurado ou compatibilidade real
 comprovada. Uma futura Fonte VRSync precisará de autorização, amostra e ticket
 próprios para modalidades, privacidade e snapshots; não amplia o provider JSON da #8.
 
-### Pesquisa da segunda Fonte (#9)
+### Pesquisa da segunda Fonte (#9, adiada)
 
 A [avaliação documental](docs/second-source-assessment.md) examina CAIXA direta e
 VendasGov. Nenhuma segunda Fonte com permissão e sobreposição suficientes foi
 comprovada. CAIXA e ILB compartilham a proveniência; dois canais da mesma oferta
-não comprovam condições comerciais independentes. #9/#10 continuam pendentes.
+não comprovam condições comerciais independentes. #9/#10 foram adiadas pelo
+responsável; não impedem o aceite do piloto de fonte única.
 
 A [qualificação da ImóveisFaixa](docs/imoveisfaixa-assessment.md) registra outra
 candidata com API anunciada para portais, mas ainda sem permissão e contrato
@@ -124,8 +136,8 @@ do responsável de procurar outra Fonte sem depender de autorização direta.
 LeilôAI permite exibir seu widget com atribuição, mas a importação/retenção para
 comparação e histórico ainda não está qualificada; Tu Lugar proíbe republicar
 anúncios, e a licença Guru dos Imóveis cobre séries agregadas. Permissão pública
-suficiente dispensa parceria privada. #9/#10 permanecem abertas até comprovar
-o uso necessário e a sobreposição real.
+suficiente dispensa parceria privada. A retomada futura de #9/#10 precisa
+comprovar o uso necessário e a sobreposição real.
 
 A [pesquisa complementar de feeds](docs/permitted-feed-search.md) encontrou no
 PNCP permissão geral de reutilização. Uma consulta limitada à CAIXA retornou 16
@@ -207,7 +219,8 @@ Django check/migrations, build no Node 22 e 14 testes Chromium desktop/celular.
 O aceite comprovou CTR de 50%, estoque 28/14, limpeza via Redis/worker e ingestão
 agendada com repetição, histórico e ausência completa. #12/#13 estão encerradas;
 a correção da #12 foi integrada em `main` pelo [PR #16](https://github.com/MOTHblank/placecheck/pull/16).
-autorizações e comparação real seguem pendentes em #7–#10/#14. Veja [as evidências e os
+Esse é o registro histórico daquela revalidação; #7/#8 foram concluídas depois,
+e #9/#10 estão adiadas no escopo atual. Veja [as evidências e os
 comandos de validação](docs/analytics.md#revalidação-em-04112026).
 
 ### Correção dos dados
@@ -348,9 +361,9 @@ do redirect para evitar contato externo. Screenshots/traces ficam em
 http://localhost:15173/api/properties/. Use `down` com os mesmos argumentos para
 parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 
-Continuam pendentes a segunda autorização #9, aceites das integrações reais #8/#10,
-aceite real integrado #14. Não há alegação
-de MVP integralmente concluído nem alteração da spec pai #1.
+#7/#8 estão concluídas. A segunda autorização e a comparação real (#9/#10) ficam
+adiadas, e #14 registra o aceite do piloto de fonte única. Isso não declara o
+MVP original integralmente concluído nem altera a spec pai #1.
 As duas revisões independentes e suas correções estão em
 [`docs/implementation-review.md`](docs/implementation-review.md).
 
