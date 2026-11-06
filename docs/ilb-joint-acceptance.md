@@ -3,8 +3,9 @@
 O piloto conjunto está em execução com quatro ofertas reais da mesma Fonte:
 duas de Salvador/BA e duas de Campinas/SP. O escopo está na
 [#7](https://github.com/MOTHblank/placecheck/issues/7); a implementação está no
-[PR #20](https://github.com/MOTHblank/placecheck/pull/20). A #8 permanece aberta:
-ainda não foi observada mudança real de preço após habilitar o histórico.
+[PR #20](https://github.com/MOTHblank/placecheck/pull/20). A #8 foi aceita pelo
+responsável em 05/11/2026, dispensando aguardar mudança natural de preço.
+Não foi observada variação real após habilitar o histórico.
 
 ## Evidências reais
 
@@ -103,13 +104,19 @@ de repetir setup. Reabilitar retenção começa pela próxima observação permi
 sem recuperar dados apagados. Revogar histórico é irreversível para os registros;
 retirada pública, por si só, preserva a retenção ainda permitida.
 
-## Aceite restante
+## Aceite da #8 e trabalho restante
 
 A amostra real não mudou de preço nesta sessão: existem quatro observações
 iniciais, não uma série de variações. O comportamento de mudança passou em testes
-e no fluxo assíncrono controlado, mas falta observá-lo pela Fonte real para
-concluir o critério conjunto da #8. Remoção individual real foi comprovada no
-PR #19. Duas páginas não comprovam snapshot completo. #9/#10 dependem de segunda
-Fonte autorizada e sobreposta; #14 depende desses aceites. Nenhum preço real foi
+e no fluxo assíncrono controlado. Em 05/11/2026, o responsável instruiu encerrar
+a #8 e parar de verificar variação natural de preço. Esse aceite dispensa a
+espera pela variação real; não a transforma em evidência observada. Não serão
+feitas novas verificações específicas para essa pendência. A sincronização normal
+do piloto e o registro de mudanças quando ocorrerem permanecem configurados.
+Remoção individual real foi comprovada no
+PR #19. Duas páginas não comprovam snapshot completo. Posteriormente, o responsável
+escolheu concluir o piloto com ILB e adiar a comparação: #9/#10 ficam para outra
+etapa; #14 avalia o [piloto de fonte única](single-source-pilot-acceptance.md).
+Nenhum preço real foi
 alterado ou inventado para fechar issue. O estudo VRSync #15 não constitui amostra
 autorizada nem provider XML.

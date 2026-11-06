@@ -2,6 +2,17 @@
 
 MVP de um buscador e agregador de anúncios imobiliários. O projeto segue o plano em [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) e começa como um monólito Django modular.
 
+## Escopo do piloto confirmado em 05/11/2026
+
+O responsável escolheu concluir o piloto interno com a **ILB como única Fonte**,
+nos mercados de venda Salvador/BA e Campinas/SP, e adiar a comparação entre
+Fontes. #7/#8 estão concluídas; #9/#10 permanecem abertas como adiadas, sem nova
+pesquisa ou integração nesta entrega. O aceite da #14 foi validado com 211 testes
+backend, 14 cenários gerais de navegador, quatro smokes reais, build e Compose.
+A spec pai #1 e a definição original de MVP multifuentes são
+preservadas; não há deploy público nem comparação real entre Fontes demonstrada.
+Consulte [o aceite do piloto de fonte única](docs/single-source-pilot-acceptance.md).
+
 ## Desenvolvimento local
 
 1. Copie `.env.example` para `.env`.
@@ -26,8 +37,10 @@ Possíveis sources:
 O [piloto Imóveis Leilão Brasil/CAIXA](docs/ilb-pilot.md) permite buscar uma amostra
 real limitada por UF/cidade em um Compose isolado. Ele usa a API pública com
 atribuição, cache diário e Celery, distinguindo valor mínimo de preço de venda.
-Não há coleta nacional automática; descrição, imagens e histórico ficam desligados,
-e capturas parciais não inativam ausências. O aceite operacional da #8 segue pendente.
+Não há coleta nacional automática; descrição e imagens ficam desligadas. O piloto
+legado também desliga histórico por padrão; o conjunto abaixo o habilita no escopo
+confirmado. Capturas parciais não inativam ausências. A #8 foi aceita pelo
+responsável em 05/11/2026, dispensando esperar uma variação natural de preço.
 
 ```bash
 docker compose -p placecheck-ilb-pilot -f docker-compose.yml -f docker-compose.ilb-pilot.yml up -d --build --wait
@@ -53,17 +66,20 @@ das duas cidades em desktop/celular. Beat → Redis → worker importou e repeti
 quatro ofertas, preservando quatro registros iniciais de preço. A instalação
 limpa revelou incompatibilidade Kombu/Redis, corrigida fixando o transporte já
 transitivo. Consulte [as evidências, a revisão e a revogação](docs/ilb-joint-acceptance.md).
-Falta observar mudança de preço na Fonte real para concluir #8; o ciclo com
-mudança passou no stack controlado, mas não substitui essa evidência.
+O responsável aceitou a #8 com essa operação real e o ciclo de mudança validado
+no stack controlado, dispensando aguardar variação natural na Fonte. Nenhuma
+mudança real de preço foi observada; as verificações específicas dessa pendência
+foram encerradas. A sincronização normal do piloto permanece configurada.
 
 Os insumos e a decisão humana da [#7](https://github.com/MOTHblank/placecheck/issues/7)
 foram concluídos para esse escopo interno. A implementação está no
-[PR #20](https://github.com/MOTHblank/placecheck/pull/20). A confirmação não
+[PR #20](https://github.com/MOTHblank/placecheck/pull/20), com correções integradas
+no [PR #21](https://github.com/MOTHblank/placecheck/pull/21). A confirmação não
 identifica uma segunda Fonte para #9/#10.
 O padrão é uma amostra de dois imóveis de Salvador/BA; o catálogo de origem é
 nacional, e o recorte pode ser configurado conforme a documentação do piloto.
 As portas são locais e os volumes ficam separados dos dados de desenvolvimento.
-Validação da integração: 101 testes backend, seis regressões Playwright,
+Validação inicial da integração (baseline anterior ao conjunto): 101 testes backend, seis regressões Playwright,
 Django check/migrations, build
 TypeScript/Vite e smoke do piloto em desktop/celular; captura real agendada e 302
 para a ficha CAIXA observados. Isso não substitui o aceite real completo de #8.
@@ -75,8 +91,8 @@ entre Fontes nem busca conjunta entre os recortes. Passaram 33 regressões ILB e
 o smoke real Chromium em desktop/celular em ambos os recortes. A retirada pública
 também foi verificada e restaurada. O [aceite por critério](docs/ilb-pilot.md#revalidação-e-aceite-por-critério--04112026)
 e a [revisão do contrato publicado](docs/ilb-contract-review.md) distinguem entregas
-e pendências: a permissão pública já fundamenta o piloto; histórico/retenção e
-escopo final dos mercados ainda impedem o aceite integral de #7/#8.
+e pendências daquela data. Histórico/retenção e mercados foram confirmados em
+05/11 e a #7 foi encerrada; a #8 também foi aceita conforme a decisão acima.
 Foi corrigido também o deslocamento de um dia da data do inventário na tabela
 comparativa. Build Node 22, 14 testes gerais de navegador (dois smokes reais
 ignorados por padrão) e os quatro smokes reais dos dois recortes passaram.
@@ -86,8 +102,7 @@ a captura parcial: consulta somente anúncios conhecidos sem captura recente,
 em lotes de até dez, com cadência diária e o rate limit da Fonte. Apenas o 404
 JSON validado do detalhe pode inativar uma oferta; falhas preservam os dados.
 O último resultado fica no admin de ingestão, sem guardar preço ou corpo HTTP.
-Histórico/retenção e escopo final dos mercados continuam pendentes em #7/#8.
-Validação: 189 testes backend/PostgreSQL, Django check/migrations e smoke real
+Validação anterior ao conjunto: 189 testes backend/PostgreSQL, Django check/migrations e smoke real
 desktop/celular passaram. Beat → Redis → worker confirmou a ausência de um anúncio
 antigo e o retirou da busca/detalhe/redirect, preservando duas ofertas e a última
 captura. As [duas revisões e a correção de transporte](docs/ilb-availability-review.md)
@@ -96,13 +111,42 @@ estão documentadas; capturas continuam parciais.
 ### Estudo de entrada VRSync (#15)
 
 A [matriz de compatibilidade VRSync](docs/vrsync-compatibility.md) confronta
-documentação oficial, exemplos sintéticos e o pipeline atual. A recomendação é
-adiar a integração até a autorização e amostra do parceiro (#7); VRSync permanece
-uma opção para um provider específico em #8. O estudo detalha modalidades
+documentação oficial, exemplos sintéticos e o pipeline atual. A decisão do estudo
+é usar a API JSON ILB para a primeira Fonte e adiar VRSync. O estudo detalha modalidades
 venda/aluguel, periodicidade de preços e IPTU, privacidade e snapshots completos.
 Não há provider XML concreto, feed real configurado ou compatibilidade real
-comprovada. Associação de duas modalidades da mesma Fonte e compartilhamento de
-snapshot entre tasks exigem trabalho explícito em #8.
+comprovada. Uma futura Fonte VRSync precisará de autorização, amostra e ticket
+próprios para modalidades, privacidade e snapshots; não amplia o provider JSON da #8.
+
+### Pesquisa da segunda Fonte (#9, adiada)
+
+A [avaliação documental](docs/second-source-assessment.md) examina CAIXA direta e
+VendasGov. Nenhuma segunda Fonte com permissão e sobreposição suficientes foi
+comprovada. CAIXA e ILB compartilham a proveniência; dois canais da mesma oferta
+não comprovam condições comerciais independentes. #9/#10 foram adiadas pelo
+responsável; não impedem o aceite do piloto de fonte única.
+
+A [qualificação da ImóveisFaixa](docs/imoveisfaixa-assessment.md) registra outra
+candidata com API anunciada para portais, mas ainda sem permissão e contrato
+verificados. A documentação indexada e as falhas de abertura direta são
+distintas; nenhuma chave, assinatura ou coleta foi iniciada.
+
+A [busca por permissões públicas](docs/public-api-candidates.md) segue a orientação
+do responsável de procurar outra Fonte sem depender de autorização direta.
+LeilôAI permite exibir seu widget com atribuição, mas a importação/retenção para
+comparação e histórico ainda não está qualificada; Tu Lugar proíbe republicar
+anúncios, e a licença Guru dos Imóveis cobre séries agregadas. Permissão pública
+suficiente dispensa parceria privada. A retomada futura de #9/#10 precisa
+comprovar o uso necessário e a sobreposição real.
+
+A [pesquisa complementar de feeds](docs/permitted-feed-search.md) encontrou no
+PNCP permissão geral de reutilização. Uma consulta limitada à CAIXA retornou 16
+contratações de serviços/tecnologia, sem ofertas imobiliárias identificadas;
+não comprova sobreposição. Hasta licencia relatórios, enquanto os documentos
+de Katular e Pro Leilão examinados não qualificaram a importação pretendida.
+
+O [Leilão Index](docs/leilaoindex-assessment.md) anuncia API ainda em breve;
+não há contrato operacional disponível nem integração qualificada nesta pesquisa.
 
 ## Banco fictício para testes
 
@@ -175,7 +219,8 @@ Django check/migrations, build no Node 22 e 14 testes Chromium desktop/celular.
 O aceite comprovou CTR de 50%, estoque 28/14, limpeza via Redis/worker e ingestão
 agendada com repetição, histórico e ausência completa. #12/#13 estão encerradas;
 a correção da #12 foi integrada em `main` pelo [PR #16](https://github.com/MOTHblank/placecheck/pull/16).
-autorizações e comparação real seguem pendentes em #7–#10/#14. Veja [as evidências e os
+Esse é o registro histórico daquela revalidação; #7/#8 foram concluídas depois,
+e #9/#10 estão adiadas no escopo atual. Veja [as evidências e os
 comandos de validação](docs/analytics.md#revalidação-em-04112026).
 
 ### Correção dos dados
@@ -316,9 +361,9 @@ do redirect para evitar contato externo. Screenshots/traces ficam em
 http://localhost:15173/api/properties/. Use `down` com os mesmos argumentos para
 parar o stack isolado, sem `-v`; volumes do desenvolvimento ficam preservados.
 
-Continuam pendentes a segunda autorização #9, aceites das integrações reais #8/#10,
-aceite real integrado #14. Não há alegação
-de MVP integralmente concluído nem alteração da spec pai #1.
+#7/#8 estão concluídas. A segunda autorização e a comparação real (#9/#10) ficam
+adiadas, e #14 registra o aceite do piloto de fonte única. Isso não declara o
+MVP original integralmente concluído nem altera a spec pai #1.
 As duas revisões independentes e suas correções estão em
 [`docs/implementation-review.md`](docs/implementation-review.md).
 
